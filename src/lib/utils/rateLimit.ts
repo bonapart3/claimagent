@@ -46,11 +46,11 @@ export class RateLimiter {
 
     constructor(config: RateLimitConfig) {
         this.config = {
-            windowMs: 60000,
-            maxRequests: 100,
-            skipFailedRequests: false,
-            skipSuccessfulRequests: false,
             ...config,
+            windowMs: config.windowMs ?? 60000,
+            maxRequests: config.maxRequests ?? 100,
+            skipFailedRequests: config.skipFailedRequests ?? false,
+            skipSuccessfulRequests: config.skipSuccessfulRequests ?? false,
         };
 
         this.store = new Map();
