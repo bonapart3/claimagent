@@ -1,0 +1,96 @@
+// src/components/claims/ClaimCard.tsx
+// Claim Summary Card Component
+
+'use client';
+
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/Card';
+
+interface ClaimCardProps {
+    claim: {
+        id: string;
+        claimNumber: string;
+        status: string;
+        claimType: string;
+        lossDate: string;
+        createdAt: string;
+        estimatedAmount?: number;
+        approvedAmount?: number;
+        vehicle?: {
+            year: number;
+            make: string;
+            model: string;
+        };
+    };
+}
+
+export function ClaimCard({ claim }: ClaimCardProps) {
+    const getStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
+            SUBMITTED: 'bg-blue-100 text-blue-800 border-blue-200',
+            UNDER_REVIEW: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            INVESTIGATING: 'bg-purple-100 text-purple-800 border-purple-200',
+            APPROVED: 'bg-green-100 text-green-800 border-green-200',
+            REJECTED: 'bg-red-100 text-red-800 border-red-200',
+            PAID: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+            FLAGGED_FRAUD: 'bg-red-100 text-red-800 border-red-200',
+            CLOSED: 'bg-gray-100 text-gray-800 border-gray-200',
+        };
+        return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+    };
+
+    const getStatusIcon = (status: string) => {
+        const icons: Record<string, string> = {
+            SUBMITTED: '📝',
+            UNDER_REVIEW: '🔍',
+            INVESTIGATING: '🔎',
+            APPROVED: '✅',
+            REJECTED: '❌',
+            PAID: '💵',
+            FLAGGED_FRAUD: '🚨',
+            CLOSED: '📁',
+        };
+        return icons[status] || '📋';
+    };
+
+    return (
+        <Link href={`/claims/${claim.claimNumber}`}>
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 className="font-semibold text-gray-900">{claim.claimNumber}</h3>
+                            <p className="text-sm text-gray-500">{claim.claimType}</p>
+                        </div>
+                        <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                                claim.status
+                            )}`}
+                        >
+                            <span>{getStatusIcon(claim.status)}</span>
+                            {claim.status.replace('_', ' ')}
+                        </span>
+                    </div>
+
+                    {claim.vehicle && (
+                        <p className="text-sm text-gray-700 mb-2">
+                            {claim.vehicle.year} {claim.vehicle.make} {claim.vehicle.model}
+                        </p>
+                    )}
+
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">
+                            Loss: {new Date(claim.lossDate).toLocaleDateString()}
+                        </span>
+                        {(claim.approvedAmount || claim.estimatedAmount) && (
+                            <span className="font-medium text-gray-900">
+                                ${((claim.approvedAmount || claim.estimatedAmount) as number).toLocaleString()}
+                            </span>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+        </Link>
+    );
+}
+
