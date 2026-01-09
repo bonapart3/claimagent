@@ -1,6 +1,6 @@
 # ClaimAgent™ - Autonomous Automotive Insurance Claims Platform
 
-![ClaimAgent™](public/logo.svg)
+![ClaimAgent™]
 
 ## 🎯 Overview
 
