@@ -2,16 +2,16 @@
 
 ![ClaimAgent™]
 
-## 🎯 Overview
+## Overview
 
 ClaimAgent™ is an enterprise-grade, AI-augmented autonomous claims processing platform for P&C insurance carriers with annual written premiums between $5M and $500M. The system handles automotive insurance claims from FNOL to settlement with 80%+ straight-through processing capability.
 By leveraging a multi-agent AI architecture, ClaimAgent™ automates intake, investigation, fraud detection, evaluation, and communications while ensuring compliance with state regulations and carrier policies.
 
-## 🚀 Features
+## Features
 
-## Core Capabilities
+## Core 
 
-- **Autonomous Processing**: 80%+ auto-adjudication for collision claims
+- ** Processing**: 80%+ auto-adjudication for collision claims
 - **Multi-Agent Architecture**: Specialized AI agents for intake, investigation, fraud detection, evaluation, and communications
 - **Legal Firewall**: Draft & Hold system prevents unauthorized denials
 - **50-State Compliance**: Built-in statutory logic for all contiguous states
@@ -60,9 +60,9 @@ Master Orchestrator
 - OpenAI API Key
 - Valuation API credentials (e.g., CCC, Mitchell)
 
-## 🔧 Installation
+## Install
 
-### 1. Clone Repository
+### 1. Clone Repo
 
 ```bash
 git clone https://github.com/bonapart/claimagent.git
@@ -91,7 +91,7 @@ bash
 npm run dev
 
 Open http://localhost
-🚢 Production Deployment
+  Production Deployment
 Vercel (Recommended)
 bash
 npm run build
@@ -110,7 +110,7 @@ Ensure all production environment variables are set:
     NEXTAUTH_SECRET
     NEXTAUTH_URL
 
-📚 Usage
+  Usage
 Submitting a Claim (API)
 typescript
 POST /api/claims/submit
@@ -133,7 +133,7 @@ json
   "nextSteps": ["Investigation in progress", "Adjuster review pending"],
   "acknowledgedAt": "2024-01-15T10:31:00Z"
 }
-🔐 Security Features
+  Security Features
 
     Authentication: Multi-factor authentication for adjusters
     Authorization: Role-based access control (RBAC)
@@ -143,19 +143,19 @@ json
     Input Validation: Sanitization of all inputs
     DDoS Protection: Cloudflare integration
 
-📊 Decision Routing Matrix
+  Decision Routing Matrix
 
 Claim Characteristics Auto-Approval Human Review Escalation
-Amount ≤ $2,500 + Low Risk ✅ - -
-Amount > $2,500 - ✅ -
-Fraud Score ≥ 50 - - ✅ SIU
-Bodily Injury - ✅ -
-Total Loss - ✅ Salvage Specialist -
-Sensor Repair Risk - ✅ Express Desk -
-Coverage Dispute - - ✅ Specialist (Draft & Hold)
-Litigation Indicator - - ✅ Legal Review
+Amount ≤ $2,500 + low risk
+Amount > $2,500 
+Fraud Score ≥ 50 
+Bodily Injury 
+Total Loss 
+Sensor Repair Risk  
+Coverage Dispute 
+Litigation Indicator
 
-🧪 Testing
+Tests
 Run All Tests
 bash
 npm test
@@ -171,7 +171,7 @@ npm run test:e2e
 Coverage Report
 bash
 npm run test:coverage
-📈 Monitoring & Analytics
+  Monitoring & Analytics
 
     Real-Time Dashboard: Claim volume, processing times, auto-approval rates
     Fraud Detection: Active fraud patterns and SIU referrals
@@ -179,14 +179,14 @@ npm run test:coverage
     Regulatory Compliance: State-specific adherence tracking
     Audit Trail: Complete activity log with search and export
 
-🛡️ Compliance
+Compliance
 Regulatory Certifications
 
-    ✅ All 50 contiguous U.S. states
-    ✅ NAIC model regulations
-    ✅ CCPA (California Consumer Privacy Act)
-    ✅ GLBA (Gramm-Leach-Bliley Act)
-    ✅ State DOI requirements
+      All 50 contiguous U.S. states
+      NAIC model regulations
+      CCPA (California Consumer Privacy Act)
+      GLBA (Gramm-Leach-Bliley Act)
+      State DOI requirements
 
 Privacy & Data Protection
 
@@ -195,7 +195,7 @@ Privacy & Data Protection
     Right to access, correction, and deletion (CCPA)
     Annual security audits
 
-🤝 Contributing
+Contributing
 Development Workflow
 
     Create feature branch: git checkout -b feature/your-feature
@@ -217,36 +217,36 @@ Code Standards
     Phone: 1-800-CLAIM-AI (1-409-308-9357)
     Status Page: https://beta.claimagent.io
 
-📄 License
+License
 
 Proprietary - All Rights Reserved
 © 2026 ClaimAgent™ / Veridicus Insurance Technology
 🗺️ Roadmap
 Q1 2026
 
-    ✅ Ochestration system
-    ✅ 50-state compliance engine
-    ✅ Fraud detection ML models
+     Ochestration system
+     50-state compliance engine
+     Fraud detection ML models
 
 Q2 2026
 
-    🔄 Multi-language support (Spanish, French)
-    🔄 Mobile app (iOS/Android)
-    🔄 Telematics integration
+    Multi-language support (Spanish, French)
+    Mobile app (iOS/Android)
+    Telematics integration
 
 Q3 2026
 
-    📅 Advanced predictive analytics
-    📅 Blockchain settlement integration
-    📅 IoT sensor data processing
+     Advanced predictive analytics
+     Blockchain settlement integration
+     IoT sensor data processing
 
 Q4 2026
 
-    📅 International expansion (Canada, UK)
-    📅 Commercial auto claims support
-    📅 Catastrophe claims handling
+    International expansion (Canada, UK)
+    Commercial auto claims support
+    Catastrophe claims handling
 
-🎓 Documentation
+Documentation
 
     API Reference
     Agent Architecture
@@ -255,14 +255,14 @@ Q4 2026
     Deployment Guide
     Security Whitepaper
 
-🏆 Achievements
+Achievements
 
     2026 InsurTech Innovation Award - Best Claims Automation Platform
     SOC 2 Type II Certified - Security & Availability
     ISO 27001 Compliant - Information Security Management
 
-Built with ❤️ by the ClaimAgent™ Team
+Built with  stress by the ClaimAgent™ Team
 
-Deployed at: claimagent.io | veridicus.io
+Deployed at: claimagent.io | beta.claimagent.io
 
 ---
