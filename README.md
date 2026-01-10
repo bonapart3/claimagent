@@ -1,4 +1,4 @@
-# ClaimAgent™ - Automotive Insurance Claims Process Simplified. Managed. Correct.
+# ClaimAgent™ - Automotive Insurance Claims Process. Simplified. Managed. Correct.
 ![ClaimAgent™]
 
 ## Overview
