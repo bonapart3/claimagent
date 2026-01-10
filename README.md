@@ -1,10 +1,9 @@
-# ClaimAgent™ - Autonomous Automotive Insurance Claims Platform
-
+# ClaimAgent™ - Automotive Insurance Claims Process Simplified. Managed. Correct.
 ![ClaimAgent™]
 
 ## Overview
 
-ClaimAgent™ is an enterprise-grade, AI-augmented autonomous claims processing platform for P&C insurance carriers with annual written premiums between $5M and $500M. The system handles automotive insurance claims from FNOL to settlement with 80%+ straight-through processing capability.
+ClaimAgent™ is an enterprise-grade, AI-augmented human controlled/autonomous claims processing platform for P&C insurance carriers with annual written premiums between $5M and $500M. The system handles automotive insurance claims from FNOL to settlement with 80%+ straight-through processing capability.
 By leveraging a multi-agent AI architecture, ClaimAgent™ automates intake, investigation, fraud detection, evaluation, and communications while ensuring compliance with state regulations and carrier policies.
 
 ## Features
