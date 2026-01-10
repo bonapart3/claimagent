@@ -18,7 +18,7 @@ By leveraging a multi-agent AI architecture, ClaimAgent™ automates intake, inv
 - **Fraud Detection**: Advanced ML-based fraud scoring with SIU integration
 - **Risk-Adjusted Autonomy**: Confidence-based routing to auto-approval or human review
 
-### Performance Metrics
+###Performance Metrics
 
 - **Cycle Time Reduction**: 5-7 days → 2-4 hours
 - **Cost Reduction**: $900 → $140 per claim
@@ -26,7 +26,7 @@ By leveraging a multi-agent AI architecture, ClaimAgent™ automates intake, inv
 - **Fraud Loss Reduction**: 40%
 - **Adjuster Workload**: 90% reduction
 
-## 🏗️ Architecture
+## Architecture
 
 ### Multi-Agent System
 
@@ -51,7 +51,7 @@ Master Orchestrator
 - **Auth**: NextAuth.js
 - **Security**: HTTPS, Rate Limiting, DDoS Protection, Encryption
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js 18.0+
 - PostgreSQL 15+ OR Cloudflare account (for D1)
@@ -209,7 +209,7 @@ Code Standards
     80%+ test coverage required
     Documentation for all public APIs
 
-📞 Support
+ Support
 
     Documentation: https://docs.claimagent.io
     Email: contimagent.io
@@ -220,7 +220,7 @@ License
 
 Proprietary - All Rights Reserved
 © 2026 ClaimAgent™ / Veridicus Insurance Technology
-🗺️ Roadmap
+ Roadmap
 Q1 2026
 
      Ochestration system
@@ -260,8 +260,8 @@ Achievements
     SOC 2 Type II Certified - Security & Availability
     ISO 27001 Compliant - Information Security Management
 
-Built with  stress by the ClaimAgent™ Team
+Built with You.In.Mind by the ClaimAgent™ Team
 
-Deployed at: claimagent.io | beta.claimagent.io
+Deployed at: claimagent.io | beta.claimagent.io 
 
 ---
