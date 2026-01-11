@@ -18,6 +18,10 @@ dist/
 # Vercel
 .vercel/
 
+# Cloudflare
+.wrangler/
+.dev.vars
+
 # Database
 *.db
 *.sqlite

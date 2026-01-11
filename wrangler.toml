@@ -1,0 +1,47 @@
+# Cloudflare Pages configuration for ClaimAgent
+# https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+
+name = "claimagent"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Pages configuration
+pages_build_output_dir = ".vercel/output/static"
+
+# Environment variables (secrets should be set in Cloudflare dashboard)
+[vars]
+NEXT_PUBLIC_APP_NAME = "ClaimAgent"
+NEXT_PUBLIC_APP_VERSION = "3.0.0"
+
+# Production environment
+[env.production]
+name = "claimagent-production"
+
+[env.production.vars]
+NODE_ENV = "production"
+
+# Preview/staging environment
+[env.preview]
+name = "claimagent-preview"
+
+[env.preview.vars]
+NODE_ENV = "preview"
+
+# Development environment
+[env.development]
+name = "claimagent-dev"
+
+[env.development.vars]
+NODE_ENV = "development"
+
+# Build configuration
+[build]
+command = "npm run pages:build"
+
+# Observability
+[observability]
+enabled = true
+
+# Limits and performance
+[limits]
+cpu_ms = 50

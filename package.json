@@ -22,7 +22,10 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "analyze": "ANALYZE=true next build",
-    "security:audit": "npm audit --audit-level=moderate"
+    "security:audit": "npm audit --audit-level=moderate",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat",
+    "pages:deploy": "npx wrangler pages deploy .vercel/output/static"
   },
   "dependencies": {
     "@prisma/client": "^5.8.0",
@@ -62,6 +65,9 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.0",
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "wrangler": "^3.22.0",
     "@playwright/test": "^1.40.1",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",

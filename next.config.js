@@ -1,3 +1,13 @@
+// Cloudflare Pages local development support
+const setupDevPlatform = async () => {
+    if (process.env.NODE_ENV === 'development') {
+        const { setupDevPlatform } = await import('@cloudflare/next-on-pages/next-dev');
+        await setupDevPlatform();
+    }
+};
+
+setupDevPlatform();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
@@ -9,13 +19,16 @@ const nextConfig = {
     },
 
     // Image Optimization
+    // Note: Using Cloudflare Image Resizing or external optimization
     images: {
-        domains: [
-            'claimagent.io',
-            'veridicus.io',
-            'cdn.claimagent.io',
-            'storage.googleapis.com',
-            's3.amazonaws.com',
+        loader: 'custom',
+        loaderFile: './src/lib/utils/imageLoader.ts',
+        remotePatterns: [
+            { protocol: 'https', hostname: 'claimagent.io' },
+            { protocol: 'https', hostname: 'veridicus.io' },
+            { protocol: 'https', hostname: 'cdn.claimagent.io' },
+            { protocol: 'https', hostname: 'storage.googleapis.com' },
+            { protocol: 'https', hostname: 's3.amazonaws.com' },
         ],
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -189,7 +202,8 @@ const nextConfig = {
     productionBrowserSourceMaps: false,
 
     // Output Configuration
-    output: 'standalone',
+    // Note: 'standalone' is not used for Cloudflare Pages deployment
+    // @cloudflare/next-on-pages handles the build output
 
     // TypeScript Configuration
     typescript: {
