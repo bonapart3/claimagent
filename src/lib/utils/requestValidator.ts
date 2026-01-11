@@ -194,8 +194,6 @@ function checkValue(value: unknown, path: string, threats: string[]): ThreatLeve
     if (typeof value === 'string') {
         for (const [threatType, patterns] of Object.entries(THREAT_PATTERNS)) {
             for (const pattern of patterns) {
-                // Reset lastIndex for global patterns
-                pattern.lastIndex = 0;
                 if (pattern.test(value)) {
                     const severity = THREAT_SEVERITY[threatType] || 'medium';
                     threats.push(`${threatType} detected in ${path}`);
