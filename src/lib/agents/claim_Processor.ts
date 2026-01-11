@@ -758,51 +758,60 @@ export class ClaimProcessor {
       data: { documentCount: documents.length }
     });
 
-    const photos: EvidencePackage['photos'] = [];
-    const processedDocs: EvidencePackage['documents'] = [];
     const statements: EvidencePackage['statements'] = [];
     const timeline: EvidencePackage['timeline'] = [];
 
+    // Separate documents by type for parallel processing
+    const photoDocs = documents.filter(doc => doc.type === 'photo');
+    const ocrDocs = documents.filter(doc => ['estimate', 'police_report', 'medical_bill'].includes(doc.type));
+    const statementDocs = documents.filter(doc => doc.type === 'statement');
+
+    // Process photos in parallel with AI damage analysis
+    const photoPromises = photoDocs.map(async (doc) => {
+      const analysis = await aiDamageAnalysis.analyze(doc.url);
+      return {
+        id: doc.id,
+        damageArea: analysis.damageAreas,
+        aiAnalysis: {
+          damageType: analysis.damageTypes,
+          severity: analysis.severity,
+          estimatedRepairCost: analysis.estimatedCost,
+          confidence: analysis.confidence
+        }
+      };
+    });
+
+    // Process documents with OCR in parallel
+    const ocrPromises = ocrDocs.map(async (doc) => {
+      const extracted = await this.extractDocumentData(doc);
+      return {
+        id: doc.id,
+        type: doc.type,
+        filename: doc.filename,
+        uploadDate: doc.uploadDate,
+        extractedData: extracted.data,
+        ocrConfidence: extracted.confidence
+      };
+    });
+
+    // Process all async operations in parallel
+    const [photos, processedDocs] = await Promise.all([
+      Promise.all(photoPromises),
+      Promise.all(ocrPromises)
+    ]);
+
+    // Process statements synchronously (no async operations)
+    for (const doc of statementDocs) {
+      statements.push({
+        from: doc.from,
+        date: doc.date,
+        content: doc.content,
+        type: doc.statementType
+      });
+    }
+
+    // Build timeline from all documents
     for (const doc of documents) {
-      // Process photos with AI damage analysis
-      if (doc.type === 'photo') {
-        const analysis = await aiDamageAnalysis.analyze(doc.url);
-        photos.push({
-          id: doc.id,
-          damageArea: analysis.damageAreas,
-          aiAnalysis: {
-            damageType: analysis.damageTypes,
-            severity: analysis.severity,
-            estimatedRepairCost: analysis.estimatedCost,
-            confidence: analysis.confidence
-          }
-        });
-      }
-
-      // Process documents with OCR
-      if (['estimate', 'police_report', 'medical_bill'].includes(doc.type)) {
-        const extracted = await this.extractDocumentData(doc);
-        processedDocs.push({
-          id: doc.id,
-          type: doc.type,
-          filename: doc.filename,
-          uploadDate: doc.uploadDate,
-          extractedData: extracted.data,
-          ocrConfidence: extracted.confidence
-        });
-      }
-
-      // Process statements
-      if (doc.type === 'statement') {
-        statements.push({
-          from: doc.from,
-          date: doc.date,
-          content: doc.content,
-          type: doc.statementType
-        });
-      }
-
-      // Add to timeline
       timeline.push({
         timestamp: doc.uploadDate || new Date(),
         event: `${doc.type} uploaded`,
