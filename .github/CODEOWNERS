@@ -1,0 +1,32 @@
+# ClaimAgent Code Owners
+# These owners will be automatically requested for review on PRs
+
+# Default owners for everything
+* @bonapart3
+
+# Core agent architecture
+/src/lib/agents/ @bonapart3
+
+# Database schema changes require review
+/prisma/ @bonapart3
+
+# Security-sensitive files
+/src/lib/utils/encryption.ts @bonapart3
+/src/lib/services/fraudDetection.ts @bonapart3
+/src/middleware.ts @bonapart3
+
+# API routes
+/src/app/api/ @bonapart3
+
+# Configuration files
+/*.config.js @bonapart3
+/tsconfig.json @bonapart3
+/.env.example @bonapart3
+
+# CI/CD and GitHub configuration
+/.github/ @bonapart3
+
+# Documentation
+/README.md @bonapart3
+/CONTRIBUTING.md @bonapart3
+/SECURITY.md @bonapart3
