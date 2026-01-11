@@ -7,6 +7,11 @@ import { validateSession } from '@/lib/utils/validation';
 import { PatternDetector } from '@/lib/agents/fraud/patternDetector';
 import { MedicalFraudScreener } from '@/lib/agents/fraud/medicalFraudScreener';
 import { FRAUD_THRESHOLD } from '@/lib/constants/thresholds';
+import { FraudScoreRequestSchema } from '@/lib/schemas/api';
+import {
+    validateRequestBody,
+    validationErrorResponse,
+} from '@/lib/utils/requestValidator';
 
 export async function POST(request: NextRequest) {
     try {
@@ -19,14 +24,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { claimId } = await request.json();
+        // Validate request body against schema
+        const validation = await validateRequestBody(request, FraudScoreRequestSchema, {
+            blockOnThreat: true,
+            logThreats: true,
+        });
 
-        if (!claimId) {
-            return NextResponse.json(
-                { error: 'Claim ID required' },
-                { status: 400 }
-            );
+        if (!validation.success || !validation.data) {
+            return validationErrorResponse(validation);
         }
+
+        const { claimId } = validation.data;
 
         // Fetch claim data
         const claim = await prisma.claim.findUnique({

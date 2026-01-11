@@ -4,6 +4,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/utils/database';
 import { validateSession } from '@/lib/utils/validation';
+import { PolicyValidateRequestSchema } from '@/lib/schemas/api';
+import {
+    validateRequestBody,
+    validationErrorResponse,
+} from '@/lib/utils/requestValidator';
 
 export async function POST(request: NextRequest) {
     try {
@@ -16,14 +21,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { policyNumber, lossDate, coverageType } = await request.json();
+        // Validate request body against schema
+        const validation = await validateRequestBody(request, PolicyValidateRequestSchema, {
+            blockOnThreat: true,
+            logThreats: true,
+        });
 
-        if (!policyNumber || !lossDate) {
-            return NextResponse.json(
-                { error: 'Policy number and loss date required' },
-                { status: 400 }
-            );
+        if (!validation.success || !validation.data) {
+            return validationErrorResponse(validation);
         }
+
+        const { policyNumber, lossDate, coverageType } = validation.data;
 
         // Find policy
         const policy = await prisma.policy.findUnique({

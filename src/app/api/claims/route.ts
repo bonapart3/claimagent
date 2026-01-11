@@ -4,14 +4,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/utils/database';
 import { auditLog } from '@/lib/utils/auditLogger';
+import { ClaimListQuerySchema } from '@/lib/schemas/api';
+import {
+    validateQueryParams,
+    validationErrorResponse,
+} from '@/lib/utils/requestValidator';
 
 export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const status = searchParams.get('status');
-        const policyId = searchParams.get('policyId');
-        const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '20');
+        // Validate query parameters
+        const queryValidation = validateQueryParams(request, ClaimListQuerySchema);
+
+        if (!queryValidation.success || !queryValidation.data) {
+            return validationErrorResponse(queryValidation);
+        }
+
+        const { status, policyId, page, limit } = queryValidation.data;
         const skip = (page - 1) * limit;
 
         // Build where clause

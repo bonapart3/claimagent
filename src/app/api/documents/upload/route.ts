@@ -4,52 +4,85 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auditLog } from '@/lib/utils/auditLogger';
+import { validateFormData, performSecurityChecks } from '@/lib/utils/requestValidator';
+import { DocumentUploadMetadataSchema } from '@/lib/schemas/api';
 
 export async function POST(request: NextRequest) {
     try {
-        const formData = await request.formData();
+        // Validate form data with security checks
+        const formValidation = await validateFormData(request, {
+            maxFileSize: 10 * 1024 * 1024, // 10MB
+            allowedMimeTypes: [
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'image/webp',
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ],
+            maxFiles: 10,
+        });
+
+        if (!formValidation.success || !formValidation.formData) {
+            await auditLog({
+                action: 'DOCUMENT_UPLOAD_REJECTED',
+                details: {
+                    reason: formValidation.error,
+                    ip: request.headers.get('x-forwarded-for') || 'unknown',
+                },
+            });
+            return NextResponse.json(
+                { success: false, error: formValidation.error },
+                { status: 400 }
+            );
+        }
+
+        const formData = formValidation.formData;
         const file = formData.get('file') as File;
         const claimId = formData.get('claimId') as string;
         const documentType = formData.get('type') as string;
         const description = formData.get('description') as string | null;
 
+        // Validate metadata fields
+        const metadataValidation = DocumentUploadMetadataSchema.safeParse({
+            claimId,
+            type: documentType,
+            description,
+        });
+
+        if (!metadataValidation.success) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Invalid metadata',
+                    details: metadataValidation.error.errors,
+                },
+                { status: 400 }
+            );
+        }
+
+        // Security check on description text
+        if (description) {
+            const securityCheck = performSecurityChecks({ description });
+            if (securityCheck.blocked) {
+                await auditLog({
+                    action: 'DOCUMENT_UPLOAD_BLOCKED',
+                    details: {
+                        reason: 'Malicious content detected in description',
+                        threats: securityCheck.threats,
+                    },
+                });
+                return NextResponse.json(
+                    { success: false, error: 'Request blocked due to security policy' },
+                    { status: 403 }
+                );
+            }
+        }
+
         if (!file) {
             return NextResponse.json(
                 { success: false, error: 'No file provided' },
-                { status: 400 }
-            );
-        }
-
-        if (!claimId) {
-            return NextResponse.json(
-                { success: false, error: 'Claim ID is required' },
-                { status: 400 }
-            );
-        }
-
-        // Validate file type
-        const allowedTypes = [
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'image/webp',
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ];
-
-        if (!allowedTypes.includes(file.type)) {
-            return NextResponse.json(
-                { success: false, error: 'Invalid file type' },
-                { status: 400 }
-            );
-        }
-
-        // Validate file size (max 10MB)
-        const maxSize = 10 * 1024 * 1024;
-        if (file.size > maxSize) {
-            return NextResponse.json(
-                { success: false, error: 'File too large (max 10MB)' },
                 { status: 400 }
             );
         }

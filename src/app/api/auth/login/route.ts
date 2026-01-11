@@ -5,19 +5,44 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { auditLog } from '@/lib/utils/auditLogger';
+import { LoginRequestSchema } from '@/lib/schemas/api';
+import {
+    validateRequestBody,
+    validationErrorResponse,
+    checkHeaders,
+} from '@/lib/utils/requestValidator';
 
 // In production, use proper password hashing (bcrypt) and JWT tokens
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { email, password } = body;
-
-        if (!email || !password) {
+        // Check headers for suspicious patterns
+        const headerCheck = checkHeaders(request);
+        if (headerCheck.blocked) {
+            await auditLog({
+                action: 'BLOCKED_LOGIN_ATTEMPT',
+                details: {
+                    reason: 'Suspicious headers detected',
+                    threats: headerCheck.threats,
+                    ip: request.headers.get('x-forwarded-for') || 'unknown',
+                },
+            });
             return NextResponse.json(
-                { success: false, error: 'Email and password are required' },
-                { status: 400 }
+                { success: false, error: 'Request blocked' },
+                { status: 403 }
             );
         }
+
+        // Validate request body against schema
+        const validation = await validateRequestBody(request, LoginRequestSchema, {
+            blockOnThreat: true,
+            logThreats: true,
+        });
+
+        if (!validation.success || !validation.data) {
+            return validationErrorResponse(validation);
+        }
+
+        const { email, password } = validation.data;
 
         // Find user by email
         const user = await prisma.user.findUnique({
