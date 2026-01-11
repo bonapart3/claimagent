@@ -3,13 +3,15 @@
 
 'use client';
 
+import { memo } from 'react';
+
 interface FraudIndicatorProps {
     score: number; // 0 to 1
     flags?: string[];
     showDetails?: boolean;
 }
 
-export function FraudIndicator({ score, flags = [], showDetails = false }: FraudIndicatorProps) {
+export const FraudIndicator = memo(function FraudIndicator({ score, flags = [], showDetails = false }: FraudIndicatorProps) {
     const percentage = Math.round(score * 100);
 
     const getRiskLevel = () => {
@@ -64,5 +66,5 @@ export function FraudIndicator({ score, flags = [], showDetails = false }: Fraud
             )}
         </div>
     );
-}
+});
 

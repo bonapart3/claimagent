@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ClaimData } from '@/lib/types/claim';
 
 interface UseClaimsOptions {
@@ -34,9 +34,25 @@ export function useClaims(options: UseClaimsOptions = {}): UseClaimsResult {
   const [page, setPage] = useState(options.page || 1);
   const [status, setStatus] = useState(options.status || '');
   const [search, setSearch] = useState(options.search || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const limit = options.limit || 10;
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Debounce search input (300ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const fetchClaims = useCallback(async () => {
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setIsLoading(true);
     setError(null);
 
@@ -47,9 +63,11 @@ export function useClaims(options: UseClaimsOptions = {}): UseClaimsResult {
       });
 
       if (status) params.set('status', status);
-      if (search) params.set('search', search);
+      if (debouncedSearch) params.set('search', debouncedSearch);
 
-      const response = await fetch(`/api/claims?${params}`);
+      const response = await fetch(`/api/claims?${params}`, {
+        signal: abortControllerRef.current.signal,
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -59,15 +77,25 @@ export function useClaims(options: UseClaimsOptions = {}): UseClaimsResult {
         setError(data.error || 'Failed to fetch claims');
       }
     } catch (err) {
+      // Ignore abort errors
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
       setError('Failed to fetch claims');
       console.error('useClaims error:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, status, search]);
+  }, [page, limit, status, debouncedSearch]);
 
   useEffect(() => {
     fetchClaims();
+    // Cleanup: abort on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [fetchClaims]);
 
   const totalPages = Math.ceil(totalCount / limit);
@@ -99,15 +127,24 @@ export function useClaim(claimId: string): UseClaimResult {
   const [claim, setClaim] = useState<ClaimData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchClaim = useCallback(async () => {
     if (!claimId) return;
+
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/claims/${claimId}`);
+      const response = await fetch(`/api/claims/${claimId}`, {
+        signal: abortControllerRef.current.signal,
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -116,6 +153,7 @@ export function useClaim(claimId: string): UseClaimResult {
         setError(data.error || 'Failed to fetch claim');
       }
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setError('Failed to fetch claim');
       console.error('useClaim error:', err);
     } finally {
@@ -125,6 +163,11 @@ export function useClaim(claimId: string): UseClaimResult {
 
   useEffect(() => {
     fetchClaim();
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [fetchClaim]);
 
   const updateClaim = async (updates: Partial<ClaimData>): Promise<boolean> => {
@@ -183,13 +226,22 @@ export function useClaimStats(): UseClaimStatsResult {
   const [stats, setStats] = useState<ClaimStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchStats = useCallback(async () => {
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/claims/stats');
+      const response = await fetch('/api/claims/stats', {
+        signal: abortControllerRef.current.signal,
+      });
       const data = await response.json();
 
       if (data.success) {
@@ -198,6 +250,7 @@ export function useClaimStats(): UseClaimStatsResult {
         setError(data.error || 'Failed to fetch stats');
       }
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setError('Failed to fetch stats');
       console.error('useClaimStats error:', err);
     } finally {
@@ -207,6 +260,11 @@ export function useClaimStats(): UseClaimStatsResult {
 
   useEffect(() => {
     fetchStats();
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [fetchStats]);
 
   return {

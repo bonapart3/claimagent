@@ -91,9 +91,12 @@ export class CoverageAnalyzerService {
         // Get applicable coverage types for this claim type
         const neededCoverages = CLAIM_TYPE_TO_COVERAGE[claimData.claimType] || ['COLLISION'];
 
+        // Build coverage Map for O(1) lookup instead of O(n) .find()
+        const coverageMap = new Map(policy.coverages?.map(c => [c.type, c]) || []);
+
         // Analyze each coverage
         for (const coverageType of neededCoverages) {
-            const coverage = policy.coverages?.find(c => c.type === coverageType);
+            const coverage = coverageMap.get(coverageType);
 
             if (coverage) {
                 const applies = this.checkCoverageApplies(coverage, claimData);
@@ -183,7 +186,9 @@ export class CoverageAnalyzerService {
 
         // Check named driver requirements
         if (coverage.namedDriverOnly && claimData.driver) {
-            const isNamedDriver = coverage.namedDrivers?.includes(claimData.driver.name || '');
+            // Use Set for O(1) lookup instead of O(n) .includes()
+            const namedDriverSet = new Set(coverage.namedDrivers || []);
+            const isNamedDriver = namedDriverSet.has(claimData.driver.name || '');
             if (!isNamedDriver) {
                 return { applies: false, reason: 'Driver not listed as named driver' };
             }
@@ -282,8 +287,9 @@ export class CoverageAnalyzerService {
     private checkExcludedDriver(claimData: ClaimData, policy: PolicyInfo): boolean {
         if (!claimData.driver) return false;
 
-        // Check excluded driver list
-        if (policy.excludedDrivers?.includes(claimData.driver.name || '')) return true;
+        // Check excluded driver list - use Set for O(1) lookup
+        const excludedDriverSet = new Set(policy.excludedDrivers || []);
+        if (excludedDriverSet.has(claimData.driver.name || '')) return true;
 
         // Check license status
         if (claimData.driver.licenseStatus === 'SUSPENDED') return true;

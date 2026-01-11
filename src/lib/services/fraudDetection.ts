@@ -262,33 +262,41 @@ export class FraudDetectionService {
   }
 
   private async checkWatchlists(claim: Claim): Promise<WatchlistCheck[]> {
-    const results: WatchlistCheck[] = [];
+    // Build all watchlist check promises to run in parallel
+    const checkPromises: Promise<WatchlistCheck>[] = [];
 
     if (claim.claimant) {
-      const claimantCheck = await this.checkEntityWatchlist(
-        claim.claimant.name, claim.claimant.ssn, 'claimant'
+      checkPromises.push(
+        this.checkEntityWatchlist(claim.claimant.name, claim.claimant.ssn, 'claimant')
       );
-      if (claimantCheck.onWatchlist) results.push(claimantCheck);
     }
 
     if (claim.repairShop) {
-      const shopCheck = await this.checkEntityWatchlist(claim.repairShop, null, 'repair_shop');
-      if (shopCheck.onWatchlist) results.push(shopCheck);
+      checkPromises.push(
+        this.checkEntityWatchlist(claim.repairShop, null, 'repair_shop')
+      );
     }
 
+    // Batch all medical provider checks in parallel
     if (claim.medicalProviders && claim.medicalProviders.length > 0) {
       for (const provider of claim.medicalProviders) {
-        const providerCheck = await this.checkEntityWatchlist(provider, null, 'medical_provider');
-        if (providerCheck.onWatchlist) results.push(providerCheck);
+        checkPromises.push(
+          this.checkEntityWatchlist(provider, null, 'medical_provider')
+        );
       }
     }
 
     if (claim.attorney) {
-      const attorneyCheck = await this.checkEntityWatchlist(claim.attorney, null, 'attorney');
-      if (attorneyCheck.onWatchlist) results.push(attorneyCheck);
+      checkPromises.push(
+        this.checkEntityWatchlist(claim.attorney, null, 'attorney')
+      );
     }
 
-    return results;
+    // Execute all checks in parallel
+    const allResults = await Promise.all(checkPromises);
+
+    // Filter to only return entities on watchlist
+    return allResults.filter(result => result.onWatchlist);
   }
 
   private async detectPatterns(claim: Claim): Promise<FraudPattern[]> {

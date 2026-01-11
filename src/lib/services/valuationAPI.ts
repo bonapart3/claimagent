@@ -9,6 +9,51 @@
 import { VehicleData } from '../types/claim';
 import { auditLog } from '../utils/auditLogger';
 
+// Cache configuration
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+class ValuationCache<T> {
+  private cache = new Map<string, CacheEntry<T>>();
+  private readonly ttlMs: number;
+  private readonly maxSize: number;
+
+  constructor(ttlMs: number = 3600000, maxSize: number = 1000) { // Default: 1 hour TTL, 1000 entries
+    this.ttlMs = ttlMs;
+    this.maxSize = maxSize;
+  }
+
+  get(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    if (Date.now() - entry.timestamp > this.ttlMs) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
+
+  set(key: string, data: T): void {
+    // Evict oldest entries if at capacity
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey) this.cache.delete(oldestKey);
+    }
+    this.cache.set(key, { data, timestamp: Date.now() });
+  }
+
+  generateKey(vin: string, mileage: number, condition: string): string {
+    return `${vin}:${Math.floor(mileage / 1000)}:${condition}`;
+  }
+}
+
+// Singleton caches for valuations
+const acvCache = new ValuationCache<ACVValuation>(3600000); // 1 hour TTL
+const salvageCache = new ValuationCache<SalvageValuation>(3600000);
+
 // State total loss thresholds
 const STATE_TOTAL_LOSS_THRESHOLDS: Record<string, number> = {
   AL: 0.75, AK: 0.80, AZ: 0.70, AR: 0.70, CA: 0.75, CO: 1.00, CT: 0.80,
@@ -138,6 +183,19 @@ export class ValuationAPIService {
   }
 
   async getACVValuation(request: ValuationRequest): Promise<ACVValuation> {
+    // Check cache first
+    const cacheKey = acvCache.generateKey(request.vehicle.vin, request.mileage, request.condition);
+    const cached = acvCache.get(cacheKey);
+    if (cached) {
+      await auditLog({
+        action: 'ACV_VALUATION_CACHE_HIT',
+        entityType: 'vehicle',
+        entityId: request.vehicle.vin,
+        metadata: { acv: cached.acv, source: 'cache' },
+      });
+      return cached;
+    }
+
     try {
       await auditLog({
         action: 'ACV_VALUATION_START',
@@ -157,10 +215,15 @@ export class ValuationAPIService {
 
       if (successfulValuations.length === 0) {
         console.warn('All external valuations failed, using internal calculation');
-        return await this.getInternalValuation(request);
+        const internalValuation = await this.getInternalValuation(request);
+        acvCache.set(cacheKey, internalValuation);
+        return internalValuation;
       }
 
       const selectedValuation = this.selectBestValuation(successfulValuations);
+
+      // Store in cache
+      acvCache.set(cacheKey, selectedValuation);
 
       await auditLog({
         action: 'ACV_VALUATION_COMPLETE',
@@ -182,6 +245,19 @@ export class ValuationAPIService {
   }
 
   async getSalvageValuation(vehicle: VehicleData, acv: number): Promise<SalvageValuation> {
+    // Check cache first (key based on VIN and ACV bucket)
+    const cacheKey = `${vehicle.vin}:${Math.floor(acv / 1000)}`;
+    const cached = salvageCache.get(cacheKey);
+    if (cached) {
+      await auditLog({
+        action: 'SALVAGE_VALUATION_CACHE_HIT',
+        entityType: 'vehicle',
+        entityId: vehicle.vin,
+        metadata: { salvageValue: cached.salvageValue, source: 'cache' },
+      });
+      return cached;
+    }
+
     try {
       await auditLog({
         action: 'SALVAGE_VALUATION_START',
@@ -223,6 +299,9 @@ export class ValuationAPIService {
         notes: data.notes || 'Estimated based on similar vehicles',
       };
 
+      // Store in cache
+      salvageCache.set(cacheKey, valuation);
+
       await auditLog({
         action: 'SALVAGE_VALUATION_COMPLETE',
         entityType: 'vehicle',
@@ -233,7 +312,7 @@ export class ValuationAPIService {
       return valuation;
     } catch (error) {
       console.warn('Salvage API unavailable, using estimate:', error);
-      return {
+      const fallbackValuation: SalvageValuation = {
         vehicleId: vehicle.vin,
         vin: vehicle.vin,
         salvageValue: this.estimateSalvageValue(acv),
@@ -243,6 +322,9 @@ export class ValuationAPIService {
         estimatedTimeToSell: 30,
         notes: 'Estimated - salvage network unavailable',
       };
+      // Cache fallback too to avoid repeated failed API calls
+      salvageCache.set(cacheKey, fallbackValuation);
+      return fallbackValuation;
     }
   }
 

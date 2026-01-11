@@ -160,9 +160,9 @@ export class UnderwritingFeedbackGenerator {
                 return vehicleAge >= ageGroup.min && vehicleAge <= ageGroup.max;
             });
 
-            const claims = request.claims.filter((c) =>
-                policies.some((p) => p.policyNumber === c.policyNumber)
-            );
+            // Use Set for O(1) lookup instead of O(n) .some()
+            const policyNumbers = new Set(policies.map(p => p.policyNumber));
+            const claims = request.claims.filter((c) => policyNumbers.has(c.policyNumber));
 
             const frequency = (claims.length / policies.length) * 100;
             const severity = claims.reduce((sum, c) => sum + (c.amountPaid || 0), 0) / claims.length || 0;
@@ -196,9 +196,9 @@ export class UnderwritingFeedbackGenerator {
                 return driverAge >= ageGroup.min && driverAge <= ageGroup.max;
             });
 
-            const claims = request.claims.filter((c) =>
-                policies.some((p) => p.policyNumber === c.policyNumber)
-            );
+            // Use Set for O(1) lookup instead of O(n) .some()
+            const policyNumbers = new Set(policies.map(p => p.policyNumber));
+            const claims = request.claims.filter((c) => policyNumbers.has(c.policyNumber));
 
             const frequency = (claims.length / policies.length) * 100;
             const severity = claims.reduce((sum, c) => sum + (c.amountPaid || 0), 0) / claims.length || 0;
@@ -235,12 +235,11 @@ export class UnderwritingFeedbackGenerator {
             p.drivers.every((d) => (d.accidentsLast3Years || 0) === 0)
         );
 
-        const withPriorClaims = request.claims.filter((c) =>
-            withPriorAccidents.some((p) => p.policyNumber === c.policyNumber)
-        );
-        const noPriorClaims = request.claims.filter((c) =>
-            noPriorAccidents.some((p) => p.policyNumber === c.policyNumber)
-        );
+        // Use Sets for O(1) lookup instead of O(n) .some()
+        const withPriorPolicyNumbers = new Set(withPriorAccidents.map(p => p.policyNumber));
+        const noPriorPolicyNumbers = new Set(noPriorAccidents.map(p => p.policyNumber));
+        const withPriorClaims = request.claims.filter((c) => withPriorPolicyNumbers.has(c.policyNumber));
+        const noPriorClaims = request.claims.filter((c) => noPriorPolicyNumbers.has(c.policyNumber));
 
         const withPriorFreq = (withPriorClaims.length / withPriorAccidents.length) * 100 || 0;
         const noPriorFreq = (noPriorClaims.length / noPriorAccidents.length) * 100 || 0;
