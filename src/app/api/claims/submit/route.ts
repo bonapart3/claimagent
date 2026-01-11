@@ -1,10 +1,21 @@
-typescript
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { validateSession } from '@/lib/utils/validation';
 import { auditLog } from '@/lib/utils/auditLogger';
+import { ClaimUpdateRequestSchema } from '@/lib/schemas/api';
+import {
+    validateRequestBody,
+    validationErrorResponse,
+    validatePathParams,
+} from '@/lib/utils/requestValidator';
+import { z } from 'zod';
 
 const prisma = new PrismaClient();
+
+// Schema for path parameters
+const ClaimIdParamsSchema = z.object({
+    id: z.string().uuid('Invalid claim ID format'),
+});
 
 /**
  * GET /api/claims/[id]
@@ -21,7 +32,13 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id: claimId } = params;
+        // Validate path parameters
+        const paramsValidation = validatePathParams(params, ClaimIdParamsSchema);
+        if (!paramsValidation.success || !paramsValidation.data) {
+            return validationErrorResponse(paramsValidation);
+        }
+
+        const { id: claimId } = paramsValidation.data;
 
         // Fetch claim with all related data
         const claim = await prisma.claim.findUnique({
@@ -128,8 +145,25 @@ export async function PATCH(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id: claimId } = params;
-        const updates = await request.json();
+        // Validate path parameters
+        const paramsValidation = validatePathParams(params, ClaimIdParamsSchema);
+        if (!paramsValidation.success || !paramsValidation.data) {
+            return validationErrorResponse(paramsValidation);
+        }
+
+        const { id: claimId } = paramsValidation.data;
+
+        // Validate request body against schema
+        const validation = await validateRequestBody(request, ClaimUpdateRequestSchema, {
+            blockOnThreat: true,
+            logThreats: true,
+        });
+
+        if (!validation.success || !validation.data) {
+            return validationErrorResponse(validation);
+        }
+
+        const updates = validation.data;
 
         // Fetch existing claim
         const existingClaim = await prisma.claim.findUnique({
@@ -200,7 +234,13 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id: claimId } = params;
+        // Validate path parameters
+        const paramsValidation = validatePathParams(params, ClaimIdParamsSchema);
+        if (!paramsValidation.success || !paramsValidation.data) {
+            return validationErrorResponse(paramsValidation);
+        }
+
+        const { id: claimId } = paramsValidation.data;
 
         // Mark claim as withdrawn
         await prisma.claim.update({
