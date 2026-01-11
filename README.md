@@ -269,7 +269,7 @@ npm run test:coverage
 
 ## License
 
-Proprietary - All Rights Reserved
+Apache License 2.0 - See [LICENSE](./LICENSE) for details.
 
 Copyright 2026 ClaimAgent / Veridicus Insurance Technology
 
