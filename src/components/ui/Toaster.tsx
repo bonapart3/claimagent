@@ -3,7 +3,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from 'react';
 
 interface Toast {
     id: string;
@@ -29,18 +29,36 @@ export function useToaster() {
 
 export function Toaster() {
     const [toasts, setToasts] = useState<Toast[]>([]);
+    const timersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+    // Cleanup all timers on unmount
+    useEffect(() => {
+        const timers = timersRef.current;
+        return () => {
+            timers.forEach(timer => clearTimeout(timer));
+            timers.clear();
+        };
+    }, []);
 
     const addToast = useCallback((message: string, type: Toast['type']) => {
         const id = Math.random().toString(36).substring(7);
         setToasts((prev) => [...prev, { id, message, type }]);
 
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
+        // Auto-remove after 5 seconds with tracked timer
+        const timer = setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== id));
+            timersRef.current.delete(id);
         }, 5000);
+        timersRef.current.set(id, timer);
     }, []);
 
     const removeToast = useCallback((id: string) => {
+        // Clear timer when manually removed
+        const timer = timersRef.current.get(id);
+        if (timer) {
+            clearTimeout(timer);
+            timersRef.current.delete(id);
+        }
         setToasts((prev) => prev.filter((t) => t.id !== id));
     }, []);
 

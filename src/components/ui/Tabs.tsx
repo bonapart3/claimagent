@@ -3,7 +3,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useMemo, useCallback, memo } from 'react';
 
 interface TabsContextValue {
   activeTab: string;
@@ -22,13 +22,16 @@ interface TabsProps {
 export function Tabs({ defaultTab, children, className = '', onChange }: TabsProps) {
   const [activeTab, setActiveTabState] = useState(defaultTab);
 
-  const setActiveTab = (id: string) => {
+  const setActiveTab = useCallback((id: string) => {
     setActiveTabState(id);
     onChange?.(id);
-  };
+  }, [onChange]);
+
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  const value = useMemo(() => ({ activeTab, setActiveTab }), [activeTab, setActiveTab]);
 
   return (
-    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
+    <TabsContext.Provider value={value}>
       <div className={className}>{children}</div>
     </TabsContext.Provider>
   );
@@ -56,12 +59,14 @@ interface TabProps {
   disabled?: boolean;
 }
 
-export function Tab({ id, children, disabled = false }: TabProps) {
+export const Tab = memo(function Tab({ id, children, disabled = false }: TabProps) {
   const context = useContext(TabsContext);
   if (!context) throw new Error('Tab must be used within Tabs');
 
   const { activeTab, setActiveTab } = context;
   const isActive = activeTab === id;
+
+  const handleClick = useCallback(() => setActiveTab(id), [setActiveTab, id]);
 
   return (
     <button
@@ -69,7 +74,7 @@ export function Tab({ id, children, disabled = false }: TabProps) {
       aria-selected={isActive}
       aria-controls={`tabpanel-${id}`}
       disabled={disabled}
-      onClick={() => setActiveTab(id)}
+      onClick={handleClick}
       className={`
         px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors
         ${isActive
@@ -82,7 +87,7 @@ export function Tab({ id, children, disabled = false }: TabProps) {
       {children}
     </button>
   );
-}
+});
 
 interface TabPanelProps {
   id: string;
@@ -90,7 +95,7 @@ interface TabPanelProps {
   className?: string;
 }
 
-export function TabPanel({ id, children, className = '' }: TabPanelProps) {
+export const TabPanel = memo(function TabPanel({ id, children, className = '' }: TabPanelProps) {
   const context = useContext(TabsContext);
   if (!context) throw new Error('TabPanel must be used within Tabs');
 
@@ -109,5 +114,5 @@ export function TabPanel({ id, children, className = '' }: TabPanelProps) {
       {children}
     </div>
   );
-}
+});
 

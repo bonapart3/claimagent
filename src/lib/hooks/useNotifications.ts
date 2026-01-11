@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 export interface Notification {
     id: string;
@@ -111,6 +111,16 @@ interface UseToastResult {
 
 export function useToast(): UseToastResult {
     const [toasts, setToasts] = useState<Toast[]>([]);
+    const timersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+    // Cleanup all timers on unmount
+    useEffect(() => {
+        const timers = timersRef.current;
+        return () => {
+            timers.forEach(timer => clearTimeout(timer));
+            timers.clear();
+        };
+    }, []);
 
     const showToast = useCallback((toast: Omit<Toast, 'id'>) => {
         const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -118,14 +128,22 @@ export function useToast(): UseToastResult {
 
         setToasts(prev => [...prev, newToast]);
 
-        // Auto dismiss
+        // Auto dismiss with tracked timer
         const duration = toast.duration || 5000;
-        setTimeout(() => {
+        const timer = setTimeout(() => {
             setToasts(prev => prev.filter(t => t.id !== id));
+            timersRef.current.delete(id);
         }, duration);
+        timersRef.current.set(id, timer);
     }, []);
 
     const dismissToast = useCallback((id: string) => {
+        // Clear timer when manually dismissed
+        const timer = timersRef.current.get(id);
+        if (timer) {
+            clearTimeout(timer);
+            timersRef.current.delete(id);
+        }
         setToasts(prev => prev.filter(t => t.id !== id));
     }, []);
 

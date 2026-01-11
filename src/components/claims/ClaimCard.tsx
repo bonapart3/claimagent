@@ -3,6 +3,7 @@
 
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
 
@@ -24,7 +25,7 @@ interface ClaimCardProps {
     };
 }
 
-export function ClaimCard({ claim }: ClaimCardProps) {
+export const ClaimCard = memo(function ClaimCard({ claim }: ClaimCardProps) {
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             SUBMITTED: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -92,5 +93,5 @@ export function ClaimCard({ claim }: ClaimCardProps) {
             </Card>
         </Link>
     );
-}
+});
 
