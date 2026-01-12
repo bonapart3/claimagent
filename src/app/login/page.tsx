@@ -152,6 +152,14 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* Register Link */}
+        <p className="text-center text-sm text-gray-600">
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            Create one
+          </Link>
+        </p>
+
         {/* Footer */}
         <p className="text-center text-sm text-gray-500">
           © 2024 ClaimAgent™. All rights reserved.

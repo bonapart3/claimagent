@@ -29,10 +29,11 @@ model User {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  claimsCreated  Claim[]       @relation("ClaimCreator")
-  claimsAssigned Claim[]       @relation("ClaimAssignee")
+  claimsCreated  Claim[]         @relation("ClaimCreator")
+  claimsAssigned Claim[]         @relation("ClaimAssignee")
   auditLogs      AuditLog[]
   sessions       UserSession[]
+  passwordReset  PasswordReset?
 
   @@index([email])
   @@index([role])
@@ -50,6 +51,19 @@ model UserSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([token])
   @@index([expiresAt])
 }
