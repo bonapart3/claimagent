@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+
+// Check if building for Cloudflare Pages
+const isCloudflarePages = process.env.CF_PAGES === '1';
+
 const nextConfig = {
     reactStrictMode: true,
     swcMinify: true,
@@ -215,6 +219,45 @@ const nextConfig = {
     httpAgentOptions: {
         keepAlive: true,
     },
+
+    // Cloudflare Pages Configuration
+    ...(isCloudflarePages && {
+        // Disable image optimization for Cloudflare (use Cloudflare Images instead)
+        images: {
+            unoptimized: true,
+        },
+        // Ensure static export compatibility
+        experimental: {
+            serverComponentsExternalPackages: [],
+        },
+    }),
 };
+
+// Cloudflare Pages specific adjustments
+if (isCloudflarePages) {
+    // Remove features not supported on Cloudflare Pages edge runtime
+    delete nextConfig.experimental?.serverComponentsExternalPackages;
+
+    // Adjust CSP for Cloudflare
+    const originalHeaders = nextConfig.headers;
+    nextConfig.headers = async () => {
+        const headers = await originalHeaders();
+        return headers.map(header => ({
+            ...header,
+            headers: header.headers.map(h => {
+                if (h.key === 'Content-Security-Policy') {
+                    return {
+                        ...h,
+                        value: h.value.replace(
+                            "connect-src 'self'",
+                            "connect-src 'self' https://*.cloudflare.com https://*.workers.dev"
+                        ),
+                    };
+                }
+                return h;
+            }),
+        }));
+    };
+}
 
 module.exports = nextConfig;

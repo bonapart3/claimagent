@@ -22,7 +22,20 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "analyze": "ANALYZE=true next build",
-    "security:audit": "npm audit --audit-level=moderate"
+    "security:audit": "npm audit --audit-level=moderate",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy",
+    "cf:deploy:staging": "wrangler deploy --env staging",
+    "cf:deploy:production": "wrangler deploy --env production",
+    "cf:tail": "wrangler tail",
+    "cf:secret": "wrangler secret",
+    "cf:kv:list": "wrangler kv:namespace list",
+    "cf:d1:list": "wrangler d1 list",
+    "cf:r2:list": "wrangler r2 bucket list",
+    "build:worker": "tsc --project workers/tsconfig.json",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flags=nodejs_compat",
+    "pages:deploy": "npx wrangler pages deploy .vercel/output/static"
   },
   "dependencies": {
     "@prisma/client": "^5.8.0",
@@ -62,6 +75,9 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.8.0",
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "wrangler": "^3.22.0",
     "@playwright/test": "^1.40.1",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
