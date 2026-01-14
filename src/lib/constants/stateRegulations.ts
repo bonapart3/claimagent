@@ -86,7 +86,7 @@ export interface TotalLossAnalysis {
 // STATE REGULATIONS DATABASE
 // ============================================================================
 
-const STATE_REGULATIONS: Record<string, StateRegulation> = {
+export const STATE_REGULATIONS: Record<string, StateRegulation> = {
     AL: {
         stateCode: 'AL',
         stateName: 'Alabama',

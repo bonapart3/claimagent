@@ -46,7 +46,7 @@ export class RateLimiter {
 
     constructor(config: RateLimitConfig) {
         this.config = {
-u            ...config,
+            ...config,
             windowMs: config.windowMs ?? 60000,
             maxRequests: config.maxRequests ?? 100,
             skipFailedRequests: config.skipFailedRequests ?? false,
