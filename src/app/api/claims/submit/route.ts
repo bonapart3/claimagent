@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/utils/database';
 import { validateSession } from '@/lib/utils/validation';
 import { auditLog } from '@/lib/utils/auditLogger';
 import { ClaimUpdateRequestSchema } from '@/lib/schemas/api';
@@ -9,8 +9,6 @@ import {
     validatePathParams,
 } from '@/lib/utils/requestValidator';
 import { z } from 'zod';
-
-const prisma = new PrismaClient();
 
 // Schema for path parameters
 const ClaimIdParamsSchema = z.object({

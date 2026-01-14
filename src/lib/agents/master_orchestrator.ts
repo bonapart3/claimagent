@@ -1,4 +1,3 @@
-File 3: src / lib / agents / orchestrator / masterOrchestrator.ts\
 /**
  * ClaimAgent™ - Master Orchestrator Agent
  * 
@@ -8,7 +7,8 @@ File 3: src / lib / agents / orchestrator / masterOrchestrator.ts\
  * @module agents/orchestrator
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/utils/database';
+import type { PrismaClient } from '@prisma/client';
 import { AuditLogger } from '../utils/auditLogger';
 import type { Claim, AgentResult, OrchestratorChecklistStatus, EscalationTrigger } from '../types/claim';
 
@@ -29,7 +29,7 @@ export class MasterOrchestrator {
     private escalationTriggers: EscalationTrigger[];
 
     constructor() {
-        this.db = new PrismaClient();
+        this.db = prisma;
         this.auditLogger = new AuditLogger();
         this.initializeChecklist();
         this.escalationTriggers = [];
