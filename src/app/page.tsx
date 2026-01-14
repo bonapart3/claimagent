@@ -76,7 +76,7 @@ export default function HomePage() {
 
                 {/* CTA Buttons */}
                 <div className="mt-8 flex justify-center space-x-4">
-                    <Button onClick={handleNewClaim} size="lg" variant="primary">
+                    <Button onClick={handleNewClaim} size="lg" variant="default">
                         <BoltIcon className="h-5 w-5 mr-2" />
                         Submit New Claim
                     </Button>
