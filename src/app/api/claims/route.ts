@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
             return validationErrorResponse(queryValidation);
         }
 
-        const { status, policyId, page, limit } = queryValidation.data;
+        const { status, policyId, page = 1, limit = 10 } = queryValidation.data;
         const skip = (page - 1) * limit;
 
         // Build where clause
