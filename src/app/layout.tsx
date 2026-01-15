@@ -1,5 +1,3 @@
-src / app / layout.tsx
-typescript
 // src/app/layout.tsx
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
