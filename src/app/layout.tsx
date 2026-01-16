@@ -4,10 +4,6 @@ import './globals.css';
 import { Providers } from '@/components/Providers';
 import { Toaster } from '@/components/ui/Toaster';
 
-// Use system fonts as fallback to avoid build-time network requests
-// In production, you can load Google Fonts via CDN in the head section
-const fontClassName = 'font-sans';
-
 export const metadata: Metadata = {
   title: 'ClaimAgent™ - Autonomous Auto Insurance Claims Platform',
   description: 'AI-powered automotive insurance claims processing with 50-state compliance, fraud detection, and automated decision routing.',
@@ -32,7 +28,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${fontClassName} antialiased bg-gray-50 dark:bg-gray-900`} style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+      <body className="antialiased bg-gray-50 dark:bg-gray-900" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
         <Providers>
           <div className="min-h-screen flex flex-col">
             {/* Global Navigation */}
