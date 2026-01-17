@@ -136,6 +136,7 @@ export default function HomePage() {
                                   const router = useRouter();
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 <Card>
                     <div className="flex items-center justify-between">
                         <div>
@@ -233,6 +234,8 @@ export default function HomePage() {
     );
 }
 =======
+=======
+>>>>>>> Stashed changes
                                 return (
                                 <main className="flex min-h-screen flex-col items-center justify-center p-8">
                                     <h1 className="text-3xl font-bold">ClaimAgent™</h1>
@@ -253,5 +256,9 @@ export default function HomePage() {
                                     </div>
                                 </main>
                                 );
+<<<<<<< Updated upstream
+                                }
+>>>>>>> Stashed changes
+=======
                                 }
 >>>>>>> Stashed changes

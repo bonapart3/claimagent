@@ -7,7 +7,11 @@
 ClaimAgent is an enterprise-grade, AI-augmented human controlled/autonomous claims processing platform for P&C insurance carriers with annual written premiums between $5M and $500M. The system handles automotive insurance claims from FNOL to settlement with 80%+ straight-through processing capability.
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 By leveraging a multi-agent AI architecture, ClaimAgent automates intake, investigation, fraud detection, evaluation, and communications while ensuring compliance with state regulations and carrier policies.
+=======
+## Features
+>>>>>>> Stashed changes
 =======
 ## Features
 >>>>>>> Stashed changes
@@ -15,10 +19,15 @@ By leveraging a multi-agent AI architecture, ClaimAgent automates intake, invest
 ## Features
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 ### Core Capabilities
 
 - **Straight-Through Processing**: 80%+ auto-adjudication for collision claims
 - **Multi-Agent Architecture**: Specialized AI agents for intake, investigation, fraud detection, evaluation, and communications
+=======
+- **Autonomous Processing**: 80%+ auto-adjudication for collision claims
+- **Multi-Agent Architecture**: Specialized AI agents for intake, investigation, fraud detection, ev    aluation, and communications
+>>>>>>> Stashed changes
 =======
 - **Autonomous Processing**: 80%+ auto-adjudication for collision claims
 - **Multi-Agent Architecture**: Specialized AI agents for intake, investigation, fraud detection, ev    aluation, and communications
@@ -151,12 +160,15 @@ Ensure all production environment variables are set:
 - `NEXTAUTH_URL`
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 ## Usage
 
 ### Submitting a Claim (API)
 
 ```http
 =======
+=======
+>>>>>>> Stashed changes
  Usage
 Submitting a Claim (API)
 typescript
@@ -185,13 +197,18 @@ Content-Type: application/json
   "acknowledgedAt": "2024-01-15T10:31:00Z"
 }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 ```
+=======
+ Security Features
+>>>>>>> Stashed changes
 =======
  Security Features
 >>>>>>> Stashed changes
 
 ## Security Features
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 - **Authentication**: Multi-factor authentication for adjusters
 - **Authorization**: Role-based access control (RBAC)
@@ -220,6 +237,8 @@ Content-Type: application/json
 
 ```bash
 =======
+=======
+>>>>>>> Stashed changes
  Decision Routing Matrix
 
 Claim Characteristics Auto-Approval Human Review Escalation
@@ -262,13 +281,18 @@ npm run test:e2e
 ```bash
 npm run test:coverage
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 ```
+=======
+ Monitoring & Analytics
+>>>>>>> Stashed changes
 =======
  Monitoring & Analytics
 >>>>>>> Stashed changes
 
 ## Monitoring & Analytics
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 - **Real-Time Dashboard**: Claim volume, processing times, auto-approval rates
 - **Fraud Detection**: Active fraud patterns and SIU referrals
@@ -278,6 +302,8 @@ npm run test:coverage
 
 ## Compliance
 =======
+=======
+>>>>>>> Stashed changes
  Compliance
 Regulatory Certifications
 
@@ -286,6 +312,9 @@ Regulatory Certifications
      CCPA (California Consumer Privacy Act)
      GLBA (Gramm-Leach-Bliley Act)
      State DOI requirements
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 ### Regulatory Certifications
@@ -297,8 +326,11 @@ Regulatory Certifications
 - State DOI requirements
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 ### Privacy & Data Protection
 =======
+=======
+>>>>>>> Stashed changes
  Contributing
 Development Workflow
 >>>>>>> Stashed changes
@@ -312,6 +344,7 @@ Development Workflow
 
 ### Development Workflow
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 1. Create feature branch: `git checkout -b feature/your-feature`
 2. Commit changes: `git commit -am 'Add feature'`
@@ -332,6 +365,8 @@ Development Workflow
 - **Phone**: 1-800-CLAIM-AI (1-409-308-9357)
 - **Status Page**: https://status.claimagent.io
 =======
+=======
+>>>>>>> Stashed changes
  Support
 
     Documentation: https://docs.claimagent.io
@@ -354,7 +389,13 @@ Q1 2026
 ## License
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 Apache License 2.0 - See [LICENSE](./LICENSE) for details.
+=======
+     Multi-language support (Spanish, French)
+     Mobile app (iOS/Android)
+     Telematics integration
+>>>>>>> Stashed changes
 =======
      Multi-language support (Spanish, French)
      Mobile app (iOS/Android)
@@ -364,7 +405,13 @@ Apache License 2.0 - See [LICENSE](./LICENSE) for details.
 Copyright 2026 ClaimAgent / Veridicus Insurance Technology
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 ## Roadmap
+=======
+     Advanced predictive analytics
+     Blockchain settlement integration
+    IoT sensor data processing
+>>>>>>> Stashed changes
 =======
      Advanced predictive analytics
      Blockchain settlement integration
@@ -373,6 +420,7 @@ Copyright 2026 ClaimAgent / Veridicus Insurance Technology
 
 ### Q1 2026
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 - [x] Orchestration system
 - [x] 50-state compliance engine
@@ -383,13 +431,24 @@ Copyright 2026 ClaimAgent / Veridicus Insurance Technology
      International expansion (Canada, UK)
      Commercial auto claims support
      Catastrophe claims handling
+=======
+     International expansion (Canada, UK)
+     Commercial auto claims support
+     Catastrophe claims handling
 
  Documentation
 >>>>>>> Stashed changes
 
+ Documentation
+>>>>>>> Stashed changes
+
+<<<<<<< Updated upstream
 - [ ] Multi-language support (Spanish, French)
 - [ ] Mobile app (iOS/Android)
 - [ ] Telematics integration
+=======
+ Achievements
+>>>>>>> Stashed changes
 
 <<<<<<< Updated upstream
 ### Q3 2026
@@ -397,9 +456,13 @@ Copyright 2026 ClaimAgent / Veridicus Insurance Technology
  Achievements
 >>>>>>> Stashed changes
 
+<<<<<<< Updated upstream
 - [ ] Advanced predictive analytics
 - [ ] Blockchain settlement integration
 - [ ] IoT sensor data processing
+=======
+Built with it by the ClaimAgent™ Team
+>>>>>>> Stashed changes
 
 <<<<<<< Updated upstream
 ### Q4 2026
