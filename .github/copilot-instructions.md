@@ -400,7 +400,7 @@ model Claim {
   // ... existing fields
   
   // Fraud detection fields
-  fraudScore      Float?    @default(0)
+  fraudScore      Float     @default(0)
   fraudFlags      Json?     // Stored as JSONB in PostgreSQL
   requiresSIU     Boolean   @default(false)
   
