@@ -1,5 +1,9 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 // src/app/layout.tsx
+=======
+// Root layout component for the application
+>>>>>>> Stashed changes
 =======
 // Root layout component for the application
 >>>>>>> Stashed changes
