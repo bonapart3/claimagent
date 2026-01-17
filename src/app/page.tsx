@@ -128,52 +128,14 @@ export default function HomePage() {
                         <div>
                             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Cost Per Claim</p>
                             <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                                ${metrics?.costPerClaim.toFixed(0) || '0'}
-                            </p>
-                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                ↓ 84% reduction
-                            </p>
-                        </div>
-                        <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                            <CurrencyDollarIcon className="h-6 w-6 text-purple-600 dark:text-purple-300" />
-                        </div>
-                    </div>
-                </Card>
+                                "use client";
 
-                <Card>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Auto-Approval Rate</p>
-                            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                                {(metrics?.autoApprovalRate * 100).toFixed(1) || '0'}%
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                Straight-through processing
-                            </p>
-                        </div>
-                        <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                            <BoltIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-300" />
-                        </div>
-                    </div>
-                </Card>
+                                import {useRouter} from "next/navigation";
 
-                <Card>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Fraud Detection</p>
-                            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                                {(metrics?.fraudDetectionRate * 100).toFixed(1) || '0'}%
-                            </p>
-                            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                                40% loss reduction
-                            </p>
-                        </div>
-                        <div className="h-12 w-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-                            <ShieldCheckIcon className="h-6 w-6 text-red-600 dark:text-red-300" />
-                        </div>
-                    </div>
-                </Card>
+                                export default function HomePage() {
+                                  const router = useRouter();
 
+<<<<<<< Updated upstream
                 <Card>
                     <div className="flex items-center justify-between">
                         <div>
@@ -270,3 +232,26 @@ export default function HomePage() {
         </div>
     );
 }
+=======
+                                return (
+                                <main className="flex min-h-screen flex-col items-center justify-center p-8">
+                                    <h1 className="text-3xl font-bold">ClaimAgent™</h1>
+                                    <p className="mt-2 text-gray-600">Autonomous automotive insurance claims platform.</p>
+                                    <div className="mt-6 flex gap-4">
+                                        <button
+                                            className="px-4 py-2 rounded bg-blue-600 text-white"
+                                            onClick={() => router.push("/claims/new")}
+                                        >
+                                            Submit New Claim
+                                        </button>
+                                        <button
+                                            className="px-4 py-2 rounded bg-gray-200"
+                                            onClick={() => router.push("/claims/dashboard")}
+                                        >
+                                            View Dashboard
+                                        </button>
+                                    </div>
+                                </main>
+                                );
+                                }
+>>>>>>> Stashed changes
