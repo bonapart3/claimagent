@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 // src/app/layout.tsx
+=======
+// Root layout component for the application
+>>>>>>> Stashed changes
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -25,7 +29,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
-        <meta name="theme-color" content="#1e3a8a" />
       </head>
       <body className={`${inter.className} antialiased bg-gray-50 dark:bg-gray-900`}>
         <Providers>
