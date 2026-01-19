@@ -133,11 +133,15 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// Simple password verification (use bcrypt in production)
+// Password verification using bcrypt
 async function verifyPassword(password: string, hash: string): Promise<boolean> {
-    // In production: return bcrypt.compare(password, hash)
-    // For demo purposes, accept if hash exists
-    return hash.length > 0;
+    const bcrypt = await import('bcryptjs');
+    try {
+        return await bcrypt.compare(password, hash);
+    } catch (error) {
+        console.error('Password verification error:', error);
+        return false;
+    }
 }
 
 // Generate session token
