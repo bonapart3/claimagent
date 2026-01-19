@@ -120,41 +120,11 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center mb-3">
-              Demo Credentials
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@claimagent.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 text-left"
-              >
-                <div className="font-medium text-gray-900">Admin</div>
-                <div className="text-gray-500">admin@claimagent.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('adjuster@claimagent.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 text-left"
-              >
-                <div className="font-medium text-gray-900">Adjuster</div>
-                <div className="text-gray-500">adjuster@claimagent.com</div>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-500">
-          © 2024 ClaimAgent™. All rights reserved.
+          © {new Date().getFullYear()} ClaimAgent™. All rights reserved.
         </p>
       </div>
     </div>

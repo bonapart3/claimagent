@@ -2,11 +2,24 @@
 // Database seed script
 
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// Generate a secure random password for initial setup
+async function hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, 12);
+}
+
 async function main() {
     console.log('🌱 Seeding database...');
+
+    // IMPORTANT: Change these passwords immediately after first login!
+    // These are temporary setup passwords only
+    const defaultPassword = process.env.SEED_DEFAULT_PASSWORD || 'ChangeMe123!';
+    const hashedPassword = await hashPassword(defaultPassword);
+
+    console.log('⚠️  Default password set. Change immediately after login!');
 
     // Create demo users
     const adminUser = await prisma.user.upsert({
@@ -17,7 +30,7 @@ async function main() {
             firstName: 'Admin',
             lastName: 'User',
             role: 'ADMIN',
-            passwordHash: '$2b$10$demohashedpassword', // Demo password
+            passwordHash: hashedPassword,
             active: true,
         },
     });
@@ -30,7 +43,7 @@ async function main() {
             firstName: 'Sarah',
             lastName: 'Supervisor',
             role: 'SUPERVISOR',
-            passwordHash: '$2b$10$demohashedpassword',
+            passwordHash: hashedPassword,
             active: true,
         },
     });
@@ -43,7 +56,7 @@ async function main() {
             firstName: 'John',
             lastName: 'Adjuster',
             role: 'ADJUSTER',
-            passwordHash: '$2b$10$demohashedpassword',
+            passwordHash: hashedPassword,
             active: true,
         },
     });
