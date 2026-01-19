@@ -27,21 +27,8 @@ export async function validateSession(request: NextRequest): Promise<Session | n
             return null;
         }
 
-        // In production, verify JWT and look up session
-        // For now, return a mock session for development
-        if (process.env.NODE_ENV === 'development' && token === 'dev-token') {
-            return {
-                userId: 'dev-user-001',
-                email: 'dev@claimagent.io',
-                role: 'admin',
-                canRead: true,
-                canWrite: true,
-                canAdmin: true,
-            };
-        }
-
         // Look up session in database
-        const session = await prisma.session.findUnique({
+        const session = await prisma.userSession.findFirst({
             where: { token },
             include: { user: true },
         });
@@ -50,13 +37,14 @@ export async function validateSession(request: NextRequest): Promise<Session | n
             return null;
         }
 
+        const userRole = session.user.role.toLowerCase();
         return {
             userId: session.userId,
             email: session.user.email,
             role: session.user.role,
             canRead: true,
-            canWrite: ['admin', 'adjuster', 'claims_rep'].includes(session.user.role),
-            canAdmin: session.user.role === 'admin',
+            canWrite: ['admin', 'adjuster', 'claims_rep', 'supervisor'].includes(userRole),
+            canAdmin: userRole === 'admin',
         };
     } catch (error) {
         console.error('Session validation failed:', error);

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/utils/database';
 import { validateSession } from '@/lib/utils/validation';
 import { auditLog } from '@/lib/utils/auditLogger';
-
-const prisma = new PrismaClient();
 
 /**
  * POST /api/claims/[id]/automate
