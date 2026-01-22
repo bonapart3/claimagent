@@ -1,24 +1,99 @@
+# Cloudflare Workers Configuration for ClaimAgent™
+# https://developers.cloudflare.com/workers/wrangler/configuration/
+
 name = "claimagent"
-type = "javascript"
-account_id = "582140ac44716af71ea07b6da6236b2a"
-workers_dev = true
+main = "workers/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
-# Cloudflare Pages Configuration
-pages_build_output_dir = ".next"
+# Account and zone configuration (set via environment or dashboard)
+# account_id = ""
+# zone_id = ""
 
-# Environment variables for production
-env.production.vars = { ENVIRONMENT = "production" }
+# Worker routes for production
+# routes = [
+#   { pattern = "claimagent.io/*", zone_name = "claimagent.io" }
+# ]
+
+# Custom domain bindings
+# [env.production]
+# routes = [
+#   { pattern = "app.claimagent.io/*", zone_name = "claimagent.io" }
+# ]
+
+# Development environment
+[env.development]
+name = "claimagent-dev"
+vars = { ENVIRONMENT = "development" }
+
+# Staging environment
+[env.staging]
+name = "claimagent-staging"
+vars = { ENVIRONMENT = "staging" }
+
+# Production environment
+[env.production]
+name = "claimagent-production"
+vars = { ENVIRONMENT = "production" }
+minify = true
+
+# Static assets configuration for UI
+[site]
+bucket = ".vercel/output/static"
+
+# Assets configuration
+[assets]
+directory = ".vercel/output/static"
+
+# D1 Database binding (Cloudflare's SQL database)
+[[d1_databases]]
+binding = "DB"
+database_name = "claimagent-db"
+database_id = "" # Set this in Cloudflare Dashboard
+
+# KV Namespace for caching and sessions
+[[kv_namespaces]]
+binding = "CACHE"
+id = "" # Set this in Cloudflare Dashboard
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "" # Set this in Cloudflare Dashboard
+
+# R2 Storage for documents and uploads
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "claimagent-documents"
+
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "claimagent-uploads"
+
+# Durable Objects for real-time claim tracking
+# [[durable_objects.bindings]]
+# name = "CLAIM_TRACKER"
+# class_name = "ClaimTracker"
+
+# Environment variables (secrets should be set via wrangler secret)
+[vars]
+APP_NAME = "ClaimAgent™"
+APP_VERSION = "3.0.0"
+API_BASE_URL = "https://api.claimagent.io"
 
 # Build configuration
-build = { cwd = ".", command = "npm run build" }
-
-# Development configuration
-env.development.vars = { ENVIRONMENT = "development" }
-
-# Routes configuration for Next.js
-routes = [
-  { pattern = "example.com/api/*", zone_name = "example.com" }
-]
+[build]
+command = "npm run build:worker"
+cwd = "."
+watch_dir = ["src", "workers"]
 
 # Observability
-observability = { enabled = true }
+[observability]
+enabled = true
+
+# Tail configuration for logging
+[tail_consumers]
+# service = "claimagent-logging"
+
+# Limits
+[limits]
+cpu_ms = 50
