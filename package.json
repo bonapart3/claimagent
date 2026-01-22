@@ -58,7 +58,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^5.0.4",
     "uuid": "^9.0.1",
-    "wrangler": "^4.58.0",
+    "wrangler": "^4.59.3",
     "zod": "^3.22.4",
     "zustand": "^4.4.7"
   },
@@ -78,7 +78,7 @@
     "@typescript-eslint/parser": "^6.17.0",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.56.0",
-    "eslint-config-next": "^14.2.0",
+    "eslint-config-next": "^16.1.4",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react": "^7.33.2",
     "jest": "^29.7.0",
