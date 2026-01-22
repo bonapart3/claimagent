@@ -1,0 +1,24 @@
+name = "claimagent"
+type = "javascript"
+account_id = "582140ac44716af71ea07b6da6236b2a"
+workers_dev = true
+
+# Cloudflare Pages Configuration
+pages_build_output_dir = ".next"
+
+# Environment variables for production
+env.production.vars = { ENVIRONMENT = "production" }
+
+# Build configuration
+build = { cwd = ".", command = "npm run build" }
+
+# Development configuration
+env.development.vars = { ENVIRONMENT = "development" }
+
+# Routes configuration for Next.js
+routes = [
+  { pattern = "example.com/api/*", zone_name = "example.com" }
+]
+
+# Observability
+observability = { enabled = true }
