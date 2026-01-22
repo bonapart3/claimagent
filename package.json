@@ -58,7 +58,10 @@
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^5.0.4",
     "uuid": "^9.0.1",
+<<<<<<< Updated upstream
     "wrangler": "^4.59.3",
+=======
+>>>>>>> Stashed changes
     "zod": "^3.22.4",
     "zustand": "^4.4.7"
   },
@@ -89,7 +92,8 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wrangler": "^4.59.3"
   },
   "engines": {
     "node": ">=18.0.0",
