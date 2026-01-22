@@ -36,14 +36,14 @@
 # Backend Team - API Routes and Server-Side Logic
 # =============================================================================
 
-# API Routes - Claims
+# API Routes - General (all endpoints)
+/src/app/api/ @bonapart3 # or @backend-team
+
+# API Routes - Claims (more specific override)
 /src/app/api/claims/ @bonapart3 # or @backend-team
 
-# API Routes - Fraud Detection
+# API Routes - Fraud Detection (more specific override)
 /src/app/api/fraud/ @bonapart3 # or @backend-team
-
-# API Routes - Other endpoints
-/src/app/api/ @bonapart3 # or @backend-team
 
 # Backend Services
 /src/lib/services/ @bonapart3 # or @backend-team
