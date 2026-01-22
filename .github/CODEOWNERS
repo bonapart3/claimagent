@@ -1,32 +1,172 @@
 # ClaimAgent Code Owners
 # These owners will be automatically requested for review on PRs
+# When teams are established, replace @bonapart3 with team handles like @org/frontend-team
 
-# Default owners for everything
+# =============================================================================
+# Core Team - Default owners for everything
+# =============================================================================
 * @bonapart3
 
-# Core agent architecture
-/src/lib/agents/ @bonapart3
+# =============================================================================
+# Frontend Team - UI Components, App Routes, and Client-Side Code
+# =============================================================================
 
-# Database schema changes require review
-/prisma/ @bonapart3
+# Next.js App Directory - Main pages
+/src/app/page.tsx @bonapart3 # or @frontend-team
+/src/app/layout.tsx @bonapart3 # or @frontend-team
+/src/app/globals.css @bonapart3 # or @frontend-team
 
-# Security-sensitive files
-/src/lib/utils/encryption.ts @bonapart3
-/src/lib/services/fraudDetection.ts @bonapart3
-/src/middleware.ts @bonapart3
+# Next.js App Directory - Feature areas
+/src/app/claims/ @bonapart3 # or @frontend-team
+/src/app/login/ @bonapart3 # or @frontend-team
 
-# API routes
-/src/app/api/ @bonapart3
+# UI Component Library
+/src/components/ @bonapart3 # or @frontend-team
+/src/components/ui/ @bonapart3 # or @frontend-team
 
-# Configuration files
-/*.config.js @bonapart3
-/tsconfig.json @bonapart3
-/.env.example @bonapart3
+# Frontend Utilities and Hooks
+/src/lib/hooks/ @bonapart3 # or @frontend-team
+/src/lib/utils/ @bonapart3 # or @frontend-team
 
-# CI/CD and GitHub configuration
-/.github/ @bonapart3
+# Styling and Configuration
+/tailwind.config.js @bonapart3 # or @frontend-team
+/postcss.config.js @bonapart3 # or @frontend-team
 
-# Documentation
-/README.md @bonapart3
-/CONTRIBUTING.md @bonapart3
-/SECURITY.md @bonapart3
+# =============================================================================
+# Backend Team - API Routes and Server-Side Logic
+# =============================================================================
+
+# API Routes - Claims
+/src/app/api/claims/ @bonapart3 # or @backend-team
+
+# API Routes - Fraud Detection
+/src/app/api/fraud/ @bonapart3 # or @backend-team
+
+# API Routes - Other endpoints
+/src/app/api/ @bonapart3 # or @backend-team
+
+# Backend Services
+/src/lib/services/ @bonapart3 # or @backend-team
+/src/lib/services/policyValidation.ts @bonapart3 # or @backend-team
+/src/lib/services/fraudDetection.ts @bonapart3 # or @backend-team, @security-team
+/src/lib/services/aiDamageAnalysis.ts @bonapart3 # or @backend-team, @ai-team
+
+# Middleware and Request Handling
+/src/middleware.ts @bonapart3 # or @backend-team, @security-team
+
+# =============================================================================
+# Database Team - Schema, Migrations, and Database Logic
+# =============================================================================
+
+# Prisma Schema - Requires careful review
+/prisma/schema.prisma @bonapart3 # or @database-team
+/prisma/migrations/ @bonapart3 # or @database-team
+/prisma/seed.ts @bonapart3 # or @database-team
+
+# Database utilities and connection handling
+/src/lib/db/ @bonapart3 # or @database-team
+/scripts/migrate.js @bonapart3 # or @database-team
+
+# =============================================================================
+# AI/ML Team - Agent Architecture and AI Services
+# =============================================================================
+
+# Core Agent Architecture
+/src/lib/agents/ @bonapart3 # or @ai-team
+/src/lib/agents/master_orchestrator.ts @bonapart3 # or @ai-team
+/src/lib/agents/orchestrator.ts @bonapart3 # or @ai-team
+
+# AI-specific services
+/src/lib/services/aiDamageAnalysis.ts @bonapart3 # or @ai-team, @backend-team
+
+# =============================================================================
+# Security Team - Security-Sensitive Files
+# =============================================================================
+
+# Encryption and Security Utilities
+/src/lib/utils/encryption.ts @bonapart3 # or @security-team
+
+# Fraud Detection
+/src/lib/services/fraudDetection.ts @bonapart3 # or @security-team, @backend-team
+
+# Authentication and Authorization
+/src/middleware.ts @bonapart3 # or @security-team, @backend-team
+
+# Security Documentation
+/SECURITY.md @bonapart3 # or @security-team
+
+# Environment Configuration (contains sensitive defaults)
+/.env.example @bonapart3 # or @security-team, @devops-team
+
+# =============================================================================
+# DevOps Team - CI/CD, Infrastructure, and Configuration
+# =============================================================================
+
+# GitHub Actions Workflows
+/.github/workflows/ @bonapart3 # or @devops-team
+/.github/workflows/neon_db.yaml @bonapart3 # or @devops-team, @database-team
+
+# Docker and Deployment
+/Dockerfile @bonapart3 # or @devops-team
+/docker-compose.yml @bonapart3 # or @devops-team
+/railway.toml @bonapart3 # or @devops-team
+/wrangler.toml @bonapart3 # or @devops-team
+
+# Build and Configuration
+/next.config.js @bonapart3 # or @devops-team, @frontend-team
+/tsconfig.json @bonapart3 # or @devops-team
+/package.json @bonapart3 # or @devops-team
+/package-lock.json @bonapart3 # or @devops-team
+
+# GitHub Configuration
+/.github/ @bonapart3 # or @devops-team
+/.github/CODEOWNERS @bonapart3 # or @devops-team
+
+# =============================================================================
+# QA Team - Tests and Testing Infrastructure
+# =============================================================================
+
+# Test Files
+/tests/ @bonapart3 # or @qa-team
+/tests/unit/ @bonapart3 # or @qa-team
+/tests/integration/ @bonapart3 # or @qa-team
+/tests/e2e/ @bonapart3 # or @qa-team
+
+# Test Configuration
+/jest.config.js @bonapart3 # or @qa-team
+/jest.config.ts @bonapart3 # or @qa-team
+/playwright.config.ts @bonapart3 # or @qa-team
+
+# =============================================================================
+# Type Definitions and Schemas
+# =============================================================================
+
+# TypeScript Types
+/src/lib/types/ @bonapart3 # or @backend-team
+
+# Validation Schemas
+/src/lib/schemas/ @bonapart3 # or @backend-team
+
+# Type Definitions
+/src/**/*.d.ts @bonapart3 # or @backend-team
+/next-env.d.ts @bonapart3 # or @devops-team, @frontend-team
+
+# =============================================================================
+# Documentation Team
+# =============================================================================
+
+# Core Documentation
+/README.md @bonapart3 # or @documentation-team
+/CONTRIBUTING.md @bonapart3 # or @documentation-team
+/CODEBASE_PROMPT.md @bonapart3 # or @documentation-team
+/REPOSITORY_ANALYSIS.md @bonapart3 # or @documentation-team
+
+# Documentation Directory
+/docs/ @bonapart3 # or @documentation-team
+
+# =============================================================================
+# Constants and Configuration
+# =============================================================================
+
+# Application Constants
+/src/lib/constants/ @bonapart3 # or @backend-team
