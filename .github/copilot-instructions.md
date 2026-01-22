@@ -3,8 +3,8 @@
 These instructions summarize how this Next.js 14 + TypeScript app is structured and how to work productively within it.
 
 ## Architecture & Key Paths
-- Framework: Next.js 14 (App Router) with TypeScript strict mode. See [tsconfig.json](tsconfig.json) and [next.config.js](next.config.js).
-- Source layout: [src](src) with aliases: `@/*`, `@/components/*`, `@/lib/*`, `@/agents/*`, `@/services/*` (see `paths` in [tsconfig.json](tsconfig.json)).
+- Framework: Next.js 14 (App Router) with TypeScript strict mode. See [tsconfig.json](../tsconfig.json) and [next.config.js](../next.config.js).
+- Source layout: [src](src) with aliases: `@/*`, `@/components/*`, `@/lib/*`, `@/agents/*`, `@/services/*` (see `paths` in [tsconfig.json](../tsconfig.json)).
 - App Router: routes under [src/app](src/app); server routes under [src/app/api/**](src/app/api).
 - Data layer: Prisma + PostgreSQL. Schema in [prisma/schema.prisma](prisma/schema.prisma); seed in [prisma/seed.ts](prisma/seed.ts).
 - Agents: Orchestration and specialized agents in [src/lib/agents](src/lib/agents), e.g., [master_orchestrator.ts](src/lib/agents/master_orchestrator.ts), [orchestrator.ts](src/lib/agents/orchestrator.ts).

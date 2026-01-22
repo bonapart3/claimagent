@@ -5,191 +5,326 @@
 -- ============================================================================
 -- EXTENSIONS
 -- ============================================================================
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- Note: These extensions require PostgreSQL and must be run by a superuser or
+-- a user with CREATE privilege on the database.
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Extension uuid-ossp already exists or cannot be created';
+END;
+$$;
+
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Extension pgcrypto already exists or cannot be created';
+END;
+$$;
 
 -- ============================================================================
 -- ENUM TYPES
 -- ============================================================================
 
 -- User & Auth Enums
-CREATE TYPE user_role AS ENUM (
-    'ADMIN',
-    'ADJUSTER',
-    'SIU_SPECIALIST',
-    'SUPERVISOR',
-    'UNDERWRITER',
-    'AGENT',
-    'CUSTOMER'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+        CREATE TYPE user_role AS ENUM (
+            'ADMIN',
+            'ADJUSTER',
+            'SIU_SPECIALIST',
+            'SUPERVISOR',
+            'UNDERWRITER',
+            'AGENT',
+            'CUSTOMER'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE carrier_tier AS ENUM (
-    'SMALL',      -- $5M-$50M
-    'REGIONAL',   -- $50M-$150M
-    'MIDSIZE'     -- $150M-$500M
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'carrier_tier') THEN
+        CREATE TYPE carrier_tier AS ENUM (
+            'SMALL',      -- $5M-$50M
+            'REGIONAL',   -- $50M-$150M
+            'MIDSIZE'     -- $150M-$500M
+        );
+    END IF;
+END;
+$$;
 
 -- Policy Enums
-CREATE TYPE policy_status AS ENUM (
-    'ACTIVE',
-    'EXPIRED',
-    'CANCELLED',
-    'SUSPENDED'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'policy_status') THEN
+        CREATE TYPE policy_status AS ENUM (
+            'ACTIVE',
+            'EXPIRED',
+            'CANCELLED',
+            'SUSPENDED'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE coverage_type AS ENUM (
-    'LIABILITY',
-    'COLLISION',
-    'COMPREHENSIVE',
-    'UM_UIM',
-    'MEDICAL_PAYMENTS',
-    'RENTAL_REIMBURSEMENT',
-    'ROADSIDE_ASSISTANCE'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'coverage_type') THEN
+        CREATE TYPE coverage_type AS ENUM (
+            'LIABILITY',
+            'COLLISION',
+            'COMPREHENSIVE',
+            'UM_UIM',
+            'MEDICAL_PAYMENTS',
+            'RENTAL_REIMBURSEMENT',
+            'ROADSIDE_ASSISTANCE'
+        );
+    END IF;
+END;
+$$;
 
 -- Claim Enums
-CREATE TYPE claim_type AS ENUM (
-    'AUTO_LIABILITY',
-    'AUTO_COLLISION',
-    'AUTO_COMPREHENSIVE',
-    'AUTO_UNINSURED_MOTORIST',
-    'AUTO_PIP',
-    'AUTO_MEDICAL_PAYMENTS'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'claim_type') THEN
+        CREATE TYPE claim_type AS ENUM (
+            'AUTO_LIABILITY',
+            'AUTO_COLLISION',
+            'AUTO_COMPREHENSIVE',
+            'AUTO_UNINSURED_MOTORIST',
+            'AUTO_PIP',
+            'AUTO_MEDICAL_PAYMENTS'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE loss_type AS ENUM (
-    'COLLISION',
-    'THEFT',
-    'VANDALISM',
-    'WEATHER',
-    'FIRE',
-    'GLASS',
-    'HIT_AND_RUN',
-    'ANIMAL',
-    'OTHER'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'loss_type') THEN
+        CREATE TYPE loss_type AS ENUM (
+            'COLLISION',
+            'THEFT',
+            'VANDALISM',
+            'WEATHER',
+            'FIRE',
+            'GLASS',
+            'HIT_AND_RUN',
+            'ANIMAL',
+            'OTHER'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE severity AS ENUM (
-    'LOW',       -- PD only, < $2,500
-    'MEDIUM',    -- PD $2,500-$10,000
-    'HIGH',      -- PD > $10,000 or minor BI
-    'CRITICAL'   -- Serious BI, fatalities, litigation
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'severity') THEN
+        CREATE TYPE severity AS ENUM (
+            'LOW',       -- PD only, < $2,500
+            'MEDIUM',    -- PD $2,500-$10,000
+            'HIGH',      -- PD > $10,000 or minor BI
+            'CRITICAL'   -- Serious BI, fatalities, litigation
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE complexity AS ENUM (
-    'SIMPLE',    -- Single vehicle, clear liability
-    'MODERATE',  -- Multi-vehicle, shared liability
-    'COMPLEX'    -- Serious injury, legal involvement
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'complexity') THEN
+        CREATE TYPE complexity AS ENUM (
+            'SIMPLE',    -- Single vehicle, clear liability
+            'MODERATE',  -- Multi-vehicle, shared liability
+            'COMPLEX'    -- Serious injury, legal involvement
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE claim_status AS ENUM (
-    'INTAKE',
-    'INVESTIGATION',
-    'EVALUATION',
-    'PENDING_APPROVAL',
-    'APPROVED',
-    'PAYMENT_PROCESSING',
-    'CLOSED',
-    'DENIED',
-    'SUSPENDED'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'claim_status') THEN
+        CREATE TYPE claim_status AS ENUM (
+            'INTAKE',
+            'INVESTIGATION',
+            'EVALUATION',
+            'PENDING_APPROVAL',
+            'APPROVED',
+            'PAYMENT_PROCESSING',
+            'CLOSED',
+            'DENIED',
+            'SUSPENDED'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE routing_decision AS ENUM (
-    'AUTO_APPROVED',
-    'HUMAN_REVIEW',
-    'SIU_ESCALATION',
-    'SPECIALIST_REVIEW',
-    'LEGAL_REVIEW',
-    'DRAFT_DENIAL'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'routing_decision') THEN
+        CREATE TYPE routing_decision AS ENUM (
+            'AUTO_APPROVED',
+            'HUMAN_REVIEW',
+            'SIU_ESCALATION',
+            'SPECIALIST_REVIEW',
+            'LEGAL_REVIEW',
+            'DRAFT_DENIAL'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE participant_role AS ENUM (
-    'INSURED',
-    'CLAIMANT',
-    'WITNESS',
-    'OTHER_DRIVER',
-    'PASSENGER',
-    'PEDESTRIAN',
-    'ATTORNEY',
-    'MEDICAL_PROVIDER'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'participant_role') THEN
+        CREATE TYPE participant_role AS ENUM (
+            'INSURED',
+            'CLAIMANT',
+            'WITNESS',
+            'OTHER_DRIVER',
+            'PASSENGER',
+            'PEDESTRIAN',
+            'ATTORNEY',
+            'MEDICAL_PROVIDER'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE document_type AS ENUM (
-    'PHOTO_VEHICLE',
-    'PHOTO_SCENE',
-    'POLICE_REPORT',
-    'MEDICAL_RECORD',
-    'REPAIR_ESTIMATE',
-    'INVOICE',
-    'RECEIPT',
-    'CORRESPONDENCE',
-    'LEGAL_DOCUMENT',
-    'OTHER'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'document_type') THEN
+        CREATE TYPE document_type AS ENUM (
+            'PHOTO_VEHICLE',
+            'PHOTO_SCENE',
+            'POLICE_REPORT',
+            'MEDICAL_RECORD',
+            'REPAIR_ESTIMATE',
+            'INVOICE',
+            'RECEIPT',
+            'CORRESPONDENCE',
+            'LEGAL_DOCUMENT',
+            'OTHER'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE communication_type AS ENUM (
-    'ACKNOWLEDGMENT',
-    'INFO_REQUEST',
-    'STATUS_UPDATE',
-    'APPROVAL_LETTER',
-    'DENIAL_LETTER',
-    'RESERVATION_OF_RIGHTS',
-    'SETTLEMENT_OFFER',
-    'PAYMENT_NOTICE',
-    'INTERNAL_NOTE'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'communication_type') THEN
+        CREATE TYPE communication_type AS ENUM (
+            'ACKNOWLEDGMENT',
+            'INFO_REQUEST',
+            'STATUS_UPDATE',
+            'APPROVAL_LETTER',
+            'DENIAL_LETTER',
+            'RESERVATION_OF_RIGHTS',
+            'SETTLEMENT_OFFER',
+            'PAYMENT_NOTICE',
+            'INTERNAL_NOTE'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE comm_direction AS ENUM (
-    'OUTBOUND',
-    'INBOUND'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'comm_direction') THEN
+        CREATE TYPE comm_direction AS ENUM (
+            'OUTBOUND',
+            'INBOUND'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE comm_status AS ENUM (
-    'DRAFT',
-    'PENDING_APPROVAL',
-    'SENT',
-    'DELIVERED',
-    'FAILED'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'comm_status') THEN
+        CREATE TYPE comm_status AS ENUM (
+            'DRAFT',
+            'PENDING_APPROVAL',
+            'SENT',
+            'DELIVERED',
+            'FAILED'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE risk_level AS ENUM (
-    'LOW',
-    'MEDIUM',
-    'HIGH',
-    'CRITICAL'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'risk_level') THEN
+        CREATE TYPE risk_level AS ENUM (
+            'LOW',
+            'MEDIUM',
+            'HIGH',
+            'CRITICAL'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE payment_method AS ENUM (
-    'CHECK',
-    'ACH',
-    'WIRE',
-    'DEBIT_CARD'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_method') THEN
+        CREATE TYPE payment_method AS ENUM (
+            'CHECK',
+            'ACH',
+            'WIRE',
+            'DEBIT_CARD'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE payment_status AS ENUM (
-    'PENDING',
-    'APPROVED',
-    'PROCESSING',
-    'COMPLETED',
-    'FAILED',
-    'CANCELLED'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_status') THEN
+        CREATE TYPE payment_status AS ENUM (
+            'PENDING',
+            'APPROVED',
+            'PROCESSING',
+            'COMPLETED',
+            'FAILED',
+            'CANCELLED'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE agent_status AS ENUM (
-    'SUCCESS',
-    'FAILURE',
-    'SKIPPED',
-    'ESCALATED'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'agent_status') THEN
+        CREATE TYPE agent_status AS ENUM (
+            'SUCCESS',
+            'FAILURE',
+            'SKIPPED',
+            'ESCALATED'
+        );
+    END IF;
+END;
+$$;
 
-CREATE TYPE handbook_type AS ENUM (
-    'CLAIMS_MANUAL',
-    'SIU_PLAYBOOK',
-    'CORRESPONDENCE_GUIDE',
-    'UNDERWRITING_GUIDELINES',
-    'STATE_SPECIFIC',
-    'TRAINING_MATERIAL'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'handbook_type') THEN
+        CREATE TYPE handbook_type AS ENUM (
+            'CLAIMS_MANUAL',
+            'SIU_PLAYBOOK',
+            'CORRESPONDENCE_GUIDE',
+            'UNDERWRITING_GUIDELINES',
+            'STATE_SPECIFIC',
+            'TRAINING_MATERIAL'
+        );
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- CORE ENTITIES
