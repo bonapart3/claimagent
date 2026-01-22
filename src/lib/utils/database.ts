@@ -13,6 +13,9 @@ import db, {
     transaction,
 } from '@/lib/db';
 
+// Import Prisma client for unified access
+import { prisma as prismaClient } from '@/lib/prisma';
+
 // Re-export all functions
 export {
     getDb,
@@ -23,6 +26,9 @@ export {
     remove,
     transaction,
 };
+
+// Re-export Prisma client
+export const prisma = prismaClient;
 
 // Backwards-compatible aliases
 export const checkDatabaseConnection = checkConnection;

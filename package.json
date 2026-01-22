@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@neondatabase/serverless": "^0.9.5",
     "@prisma/client": "^5.8.0",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-dialog": "^1.0.5",

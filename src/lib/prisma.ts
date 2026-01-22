@@ -1,5 +1,17 @@
 // src/lib/prisma.ts
-// Re-export prisma client for backward compatibility
+// Prisma Client singleton instance
 
-export { prisma } from './utils/database';
+import { PrismaClient } from '@prisma/client';
+
+declare global {
+  var prisma: PrismaClient | undefined;
+}
+
+export const prisma = global.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma;
+}
+
+export default prisma;
 
