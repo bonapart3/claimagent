@@ -1,51 +1,525 @@
-# ClaimAgent – AI Coding Agent Instructions
+# Repository Copilot Instructions
 
-These instructions summarize how this Next.js 14 + TypeScript app is structured and how to work productively within it.
+> Save as: `.github/copilot-instructions.md` in your repository
 
-## Architecture & Key Paths
-- Framework: Next.js 14 (App Router) with TypeScript strict mode. See [tsconfig.json](../tsconfig.json) and [next.config.js](../next.config.js).
-- Source layout: [src](src) with aliases: `@/*`, `@/components/*`, `@/lib/*`, `@/agents/*`, `@/services/*` (see `paths` in [tsconfig.json](../tsconfig.json)).
-- App Router: routes under [src/app](src/app); server routes under [src/app/api/**](src/app/api).
-- Data layer: Prisma + PostgreSQL. Schema in [prisma/schema.prisma](prisma/schema.prisma); seed in [prisma/seed.ts](prisma/seed.ts).
-- Agents: Orchestration and specialized agents in [src/lib/agents](src/lib/agents), e.g., [master_orchestrator.ts](src/lib/agents/master_orchestrator.ts), [orchestrator.ts](src/lib/agents/orchestrator.ts).
-- Domain services: [src/lib/services](src/lib/services) (e.g., [policyValidation.ts](src/lib/services/policyValidation.ts), [aiDamageAnalysis.ts](src/lib/services/aiDamageAnalysis.ts)).
-- Middleware: Auth/routing in [src/middleware.ts](src/middleware.ts).
-- Public assets: [public](public).
+---
 
-## Developer Workflows
-- Install: `npm install` (Node 18+). Postinstall runs `prisma generate`.
-- Dev server: `npm run dev` → http://localhost:3000
-- Build/start: `npm run build` then `npm run start` (Next output: `standalone`).
-- Lint/format/type-check: `npm run lint`, `npm run format`, `npm run type-check`.
-- Tests: Jest (`npm test`, `npm run test:unit`, `npm run test:integration`) + Playwright E2E (`npm run test:e2e`). Coverage: `npm run test:coverage`.
-- Database: `npm run db:generate`, `npm run db:migrate`, `npm run db:seed`, `npm run db:studio`. Configure envs from [.env.example](.env.example).
+## Project Context
 
-## Patterns & Conventions
-- API routes: Use App Router `route.ts` files under [src/app/api](src/app/api). Typical flow: validate → service call(s) → Prisma ops → structured response. Examples live under [src/app/api/claims](src/app/api/claims) and [src/app/api/fraud](src/app/api/fraud).
-- Services: Keep side-effects isolated and return typed results. Example policy validation uses Prisma and maps DB models to `Policy` interface ([policyValidation.ts](src/lib/services/policyValidation.ts)). AI damage analysis logs via `auditLog`, validates inputs, and falls back when external AI is unavailable ([aiDamageAnalysis.ts](src/lib/services/aiDamageAnalysis.ts)).
-- Agents & orchestration: The master orchestrator coordinates phased processing (Intake → Investigation/Fraud → Evaluation → Communications → QA → Final Validation → Decision). See auto-approval criteria and escalation triggers in [master_orchestrator.ts](src/lib/agents/master_orchestrator.ts). A lighter, types-driven version is in [orchestrator.ts](src/lib/agents/orchestrator.ts).
-- Auth & middleware: Public routes and API exceptions defined in [src/middleware.ts](src/middleware.ts). Session token expected via cookie; middleware passes `x-session-token` downstream.
-- Path aliases: Prefer `@/...` imports per [tsconfig.json](tsconfig.json) `paths`. Example: `import { aiDamageAnalysis } from '@/lib/services/aiDamageAnalysis'`.
-- Security headers & CSP: Managed in [next.config.js](next.config.js) (`headers()`), including `Content-Security-Policy`, `Permissions-Policy`, and image domains. Avoid introducing client-side packages that break CSP.
+This is an **enterprise-grade AI-augmented autonomous insurance claims processing platform** for automotive P&C insurance carriers. ClaimAgent handles automotive insurance claims from FNOL (First Notice of Loss) to settlement with 80%+ straight-through processing capability using a multi-agent AI architecture.
 
-## Integration Points
-- External AI: OpenAI via envs (`OPENAI_*`) and custom endpoints (`AI_DAMAGE_MODEL_ENDPOINT`) referenced in services.
-- Compliance/State rules: Encapsulated in services like [StateComplianceRules.ts](src/lib/services/StateComplianceRules.ts) and Prisma models in [prisma/schema.prisma](prisma/schema.prisma).
-- Valuation/fraud/payment: Service boundaries in [src/lib/services](src/lib/services) (e.g., `valuationAPI.ts`, `fraudDetection.ts`, `paymentProcessor.ts`).
+### Tech Stack
 
-## Example Flows
-- Submit claim: Handler lives under [src/app/api/claims/submit](src/app/api/claims/submit). Pattern: parse + validate → call `policyValidation` → compute severity → persist → return processing status.
-- Automate claim: [src/app/api/claims/[id]/automate](src/app/api/claims/[id]/automate) triggers orchestrator phases and records escalation triggers.
-- Fraud score: [src/app/api/fraud/score](src/app/api/fraud/score) invokes detection service and updates `FraudAnalysis`.
+- **Language**: TypeScript 5.x (strict mode)
+- **Framework**: Next.js 14+ (App Router)
+- **Database**: PostgreSQL 15+ with Prisma ORM 5.0+
+- **AI/ML**: OpenAI GPT-4, Claude, Custom ML Models
+- **Auth**: NextAuth.js with role-based access control
+- **UI**: React 18, Tailwind CSS, Radix UI components
+- **Testing**: Jest, React Testing Library, Playwright
+- **State Management**: Zustand, React Query (TanStack Query)
+- **Validation**: Zod schemas
+- **Security**: Helmet, rate limiting, encryption (AES-256, TLS 1.3)
 
-## Adding Features Safely
-- New API endpoint: Create `route.ts` under appropriate `src/app/api/...` path, validate input (e.g., Zod), call services, and persist via Prisma. Honor auth middleware expectations.
-- New agent/service: Place files under [src/lib/agents](src/lib/agents) or [src/lib/services](src/lib/services), export typed functions/classes, and log via audit trail when applicable. Wire into orchestrator phases if part of core processing.
-- DB changes: Update [prisma/schema.prisma](prisma/schema.prisma), then `npm run db:migrate`. Reflect interface mappings in services.
+### Architecture
 
-## Environment & Ops Notes
-- Configure secrets in `.env` per [.env.example](.env.example): `DATABASE_URL`, `NEXTAUTH_*`, `OPENAI_API_KEY`, `SENTRY_DSN`, etc.
-- Next.js config enforces ESLint during build and uses `output: 'standalone'` for Docker/Vercel.
-- Rate limiting and security flags are env-driven (see `.env.example` keys like `RATE_LIMIT_*`, `DDOS_PROTECTION_ENABLED`).
+```
+src/
+├── app/                    # Next.js 14 App Router pages
+│   ├── api/               # API routes
+│   ├── claims/            # Claims-related pages
+│   ├── login/             # Authentication pages
+│   └── layout.tsx         # Root layout
+├── components/            # React UI components
+│   ├── ui/               # Reusable UI primitives (Button, Input, etc.)
+│   ├── claims/           # Domain-specific components
+│   └── layout/           # Layout components (Header, Sidebar)
+├── lib/                   # Core application logic
+│   ├── agents/           # Multi-agent AI system
+│   │   ├── intake/       # Intake & triage agents
+│   │   ├── investigation/ # Investigation agents
+│   │   ├── fraud/        # Fraud detection agents
+│   │   ├── evaluation/   # Evaluation & settlement agents
+│   │   ├── communications/ # Communication agents
+│   │   ├── qa/           # Quality assurance agents
+│   │   ├── validation/   # Regulatory validation
+│   │   └── orchestrator.ts # Master orchestrator
+│   ├── services/         # External API integrations
+│   ├── utils/            # Utility functions
+│   ├── hooks/            # React custom hooks
+│   ├── types/            # TypeScript type definitions
+│   ├── schemas/          # Zod validation schemas
+│   ├── constants/        # Constants and configuration
+│   └── prisma.ts         # Prisma client instance
+├── prisma/               # Database schema and migrations
+└── middleware.ts         # Next.js middleware
+```
 
-If any sections feel incomplete or you need deeper examples (e.g., specific route handlers or agent interfaces), tell me which areas to expand and I’ll iterate.
+## Coding Standards
+
+### Naming Conventions
+- **Files**: kebab-case (`fraud-detection.ts`, `claim-processor.ts`)
+- **Components**: PascalCase (`ClaimCard.tsx`, `FraudIndicator.tsx`)
+- **Functions**: camelCase (`getUserById`, `analyzeClaim`)
+- **Constants**: SCREAMING_SNAKE_CASE (`MAX_RETRY_COUNT`, `DEFAULT_TIMEOUT`)
+- **Types/Interfaces**: PascalCase (`Claim`, `FraudScore`, `UserRole`)
+- **Enums**: PascalCase with PascalCase values (`enum ClaimStatus { Open = 'Open', Closed = 'Closed' }`)
+
+### File Structure
+```typescript
+// 1. File header comment (optional, for complex files)
+/**
+ * Fraud Detection Service
+ * Multi-layered fraud detection combining rule-based logic and ML models
+ * @module services/fraudDetection
+ */
+
+// 2. Imports (external, then internal, alphabetized within groups)
+import { useState, useEffect } from 'react';
+import { OpenAI } from 'openai';
+
+import { cn } from '@/lib/utils/cn';
+import { Claim } from '@/lib/types/claim';
+
+// 3. Types/Interfaces (exported interfaces first, then internal)
+export interface FraudScore {
+  overallScore: number;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  flags: FraudFlag[];
+}
+
+interface InternalConfig {
+  // ...
+}
+
+// 4. Constants
+const DEFAULT_TIMEOUT = 30000;
+const MAX_RETRY_COUNT = 3;
+
+// 5. Main export (component, service class, or functions)
+export class FraudDetectionService {
+  // ...
+}
+
+// 6. Helper functions (not exported)
+function calculateScore(flags: FraudFlag[]): number {
+  // ...
+}
+```
+
+### Error Handling Pattern
+```typescript
+// Use try-catch for async operations with proper error logging
+async function fetchClaim(id: string): Promise<Claim> {
+  try {
+    const claim = await prisma.claim.findUnique({
+      where: { id },
+      include: { vehicle: true, claimant: true }
+    });
+    
+    if (!claim) {
+      throw new Error(`Claim not found: ${id}`);
+    }
+    
+    await auditLog({
+      action: 'CLAIM_FETCHED',
+      entityType: 'claim',
+      entityId: id
+    });
+    
+    return claim;
+  } catch (error) {
+    await auditLog({
+      action: 'CLAIM_FETCH_ERROR',
+      entityType: 'claim',
+      entityId: id,
+      metadata: { error: error instanceof Error ? error.message : 'Unknown error' }
+    });
+    throw error;
+  }
+}
+
+// For API routes, use consistent response format
+export async function GET(request: Request) {
+  try {
+    const data = await fetchData();
+    return Response.json({ data }, { status: 200 });
+  } catch (error) {
+    console.error('API Error:', error);
+    return Response.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Testing Patterns
+```typescript
+// Use Arrange-Act-Assert pattern
+describe('FraudDetectionService', () => {
+  describe('analyzeClaim', () => {
+    it('should flag claim with rapid policy purchase', async () => {
+      // Arrange
+      const fraudService = new FraudDetectionService();
+      const claim: Claim = {
+        id: 'CLM-001',
+        lossDate: new Date('2024-01-20'),
+        policy: {
+          effectiveDate: new Date('2024-01-15') // 5 days before loss
+        }
+      };
+
+      // Act
+      const result = await fraudService.analyzeClaim(claim);
+
+      // Assert
+      expect(result.flags).toContainEqual(
+        expect.objectContaining({
+          type: 'rapid_policy_purchase',
+          severity: 'high'
+        })
+      );
+      expect(result.overallScore).toBeGreaterThan(0);
+    });
+  });
+});
+```
+
+## Component Patterns
+
+### React Components
+```tsx
+// Prefer function components with explicit typing
+interface ClaimCardProps {
+  claim: Claim;
+  onEdit?: (claimId: string) => void;
+  onDelete?: (claimId: string) => void;
+  className?: string;
+}
+
+export function ClaimCard({ claim, onEdit, onDelete, className }: ClaimCardProps) {
+  const handleEdit = useCallback(() => {
+    onEdit?.(claim.id);
+  }, [claim.id, onEdit]);
+
+  const handleDelete = useCallback(() => {
+    if (confirm('Are you sure you want to delete this claim?')) {
+      onDelete?.(claim.id);
+    }
+  }, [claim.id, onDelete]);
+
+  return (
+    <div className={cn('rounded-lg border bg-card p-4', className)}>
+      <h3 className="text-lg font-semibold">{claim.claimNumber}</h3>
+      <p className="text-sm text-muted-foreground">{claim.description}</p>
+      <div className="mt-4 flex gap-2">
+        {onEdit && (
+          <Button onClick={handleEdit} size="sm">Edit</Button>
+        )}
+        {onDelete && (
+          <Button onClick={handleDelete} size="sm" variant="destructive">
+            Delete
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+### API Routes (Next.js App Router)
+```typescript
+// src/app/api/claims/[id]/route.ts
+import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { z } from 'zod';
+
+import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import { auditLog } from '@/lib/utils/auditLogger';
+
+// GET /api/claims/[id]
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const claim = await prisma.claim.findUnique({
+      where: { id: params.id },
+      include: { 
+        vehicle: true, 
+        claimant: true,
+        documents: true 
+      }
+    });
+
+    if (!claim) {
+      return Response.json({ error: 'Claim not found' }, { status: 404 });
+    }
+
+    await auditLog({
+      action: 'CLAIM_VIEWED',
+      userId: session.user.id,
+      entityType: 'claim',
+      entityId: claim.id
+    });
+
+    return Response.json({ data: claim });
+  } catch (error) {
+    console.error('Error fetching claim:', error);
+    return Response.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/claims/[id]
+const updateSchema = z.object({
+  status: z.enum(['OPEN', 'INVESTIGATING', 'SETTLED', 'DENIED']).optional(),
+  notes: z.string().optional(),
+  estimatedAmount: z.number().positive().optional()
+});
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const validatedData = updateSchema.parse(body);
+
+    const claim = await prisma.claim.update({
+      where: { id: params.id },
+      data: validatedData
+    });
+
+    await auditLog({
+      action: 'CLAIM_UPDATED',
+      userId: session.user.id,
+      entityType: 'claim',
+      entityId: claim.id,
+      metadata: validatedData
+    });
+
+    return Response.json({ data: claim });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return Response.json({ error: 'Invalid request data', details: error.errors }, { status: 400 });
+    }
+    console.error('Error updating claim:', error);
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+```
+
+## Database Patterns
+
+### Prisma Query Structure
+```typescript
+// Use Prisma's type-safe query builder
+// Always include necessary relations for performance
+
+// Good: Explicit includes
+const claim = await prisma.claim.findUnique({
+  where: { id: claimId },
+  include: {
+    vehicle: true,
+    claimant: true,
+    policy: {
+      include: {
+        coverages: true
+      }
+    },
+    documents: {
+      where: { 
+        status: 'ACTIVE' 
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    }
+  }
+});
+
+// Good: Use transactions for related operations
+const result = await prisma.$transaction(async (tx) => {
+  const claim = await tx.claim.create({
+    data: claimData
+  });
+
+  await tx.auditLog.create({
+    data: {
+      action: 'CLAIM_CREATED',
+      entityType: 'claim',
+      entityId: claim.id,
+      userId: user.id
+    }
+  });
+
+  return claim;
+});
+
+// Good: Batch operations for performance
+const claims = await prisma.claim.findMany({
+  where: {
+    status: 'OPEN',
+    createdAt: {
+      gte: startDate,
+      lte: endDate
+    }
+  },
+  take: 100,
+  skip: page * 100,
+  orderBy: {
+    createdAt: 'desc'
+  }
+});
+```
+
+### Migrations
+```prisma
+// Always write reversible migrations with clear comments
+
+// Create migration:
+// npx prisma migrate dev --name add_fraud_score_to_claims
+
+// In schema.prisma:
+model Claim {
+  // ... existing fields
+  
+  // Fraud detection fields
+  fraudScore      Float     @default(0)
+  fraudFlags      Json?     // Stored as JSONB in PostgreSQL
+  requiresSIU     Boolean   @default(false)
+  
+  @@index([fraudScore])
+  @@index([requiresSIU])
+}
+```
+
+## Security Checklist
+
+When suggesting code, ensure:
+- [ ] No secrets or API keys in code (use environment variables)
+- [ ] Input validation on all user data (use Zod schemas)
+- [ ] SQL injection prevention (use Prisma parameterized queries)
+- [ ] XSS prevention in output (React escapes by default, be careful with dangerouslySetInnerHTML)
+- [ ] CSRF protection for mutations (Next.js handles this)
+- [ ] Rate limiting on public endpoints (use middleware)
+- [ ] Proper authentication checks (use getServerSession)
+- [ ] Role-based authorization (check user.role)
+- [ ] Audit logging for sensitive operations (use auditLog utility)
+- [ ] PII encryption for sensitive data (use encryption utility)
+- [ ] HTTPS/TLS for all communications (enforced in production)
+
+## Common Imports
+
+```typescript
+// Utils we commonly use
+import { cn } from '@/lib/utils/cn';                    // Tailwind class name merging
+import { prisma } from '@/lib/prisma';                  // Prisma client instance
+import { auditLog } from '@/lib/utils/auditLogger';    // Audit logging
+import { validate } from '@/lib/utils/validation';      // Input validation helpers
+
+// Type definitions
+import { Claim } from '@/lib/types/claim';
+import { Policy } from '@/lib/types/policy';
+import { Agent } from '@/lib/types/agent';
+
+// UI components
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/Card';
+
+// Hooks
+import { useClaims } from '@/lib/hooks/useClaims';
+import { useAuth } from '@/lib/hooks/useAuth';
+
+// Authentication
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+```
+
+## Domain-Specific Guidelines
+
+### Claims Processing
+- All claim state changes must be audit logged
+- Fraud detection should run on all new claims
+- Claims over $2,500 require human review
+- Settlement calculations must follow state-specific regulations
+- All AI agent decisions must include confidence scores
+
+### Fraud Detection
+- Fraud scores range from 0-100
+- Score ≥50 triggers SIU review
+- Always log fraud analysis results
+- Multiple fraud indicators increase weight exponentially
+- Watchlist checks are mandatory for all participants
+
+### Compliance & Regulations
+- Check state-specific requirements before settlement
+- Document all compliance checks in audit log
+- Legal firewall prevents unauthorized denials
+- All communications must follow state DOI requirements
+- PII must be encrypted at rest and in transit
+
+### AI Agent Architecture
+- Each agent has a specific role and expertise
+- Agents communicate through the orchestrator
+- All agent decisions include confidence scores
+- Low confidence triggers human review
+- Agent results are always auditable
+
+## Do NOT Suggest
+
+- `any` type - use `unknown` or proper types
+- `// @ts-ignore` - fix the type issue instead
+- `eslint-disable` - fix the lint issue instead
+- Inline styles - use Tailwind utility classes
+- Direct DOM manipulation - use React patterns
+- Raw SQL queries - use Prisma query builder
+- Storing secrets in code - use environment variables
+- Synchronous I/O in API routes - use async/await
+- Mutations without audit logging - always log sensitive operations
+- Skipping fraud detection - mandatory for all claims
+
+## Best Practices
+
+### Performance
+- Use React.memo() for expensive components
+- Implement proper loading states
+- Use React Query for data fetching and caching
+- Lazy load components with React.lazy()
+- Optimize images with Next.js Image component
+- Use Prisma connection pooling
+
+### Code Quality
+- Write descriptive commit messages
+- Keep functions focused (single responsibility)
+- Extract magic numbers into named constants
+- Document complex business logic
+- Write tests for critical paths
+- Use TypeScript strict mode
+
+### Error Handling
+- Never swallow errors silently
+- Log errors with context
+- Return user-friendly error messages
+- Use audit logging for debugging production issues
+- Implement proper error boundaries in React
+
+---
+
+**Remember**: ClaimAgent handles real insurance claims with real money. Code quality, security, and accuracy are paramount. When in doubt, err on the side of caution and require human review.
