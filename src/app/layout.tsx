@@ -1,19 +1,8 @@
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 // src/app/layout.tsx
-=======
-// Root layout component for the application
->>>>>>> Stashed changes
-=======
-// Root layout component for the application
->>>>>>> Stashed changes
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import { Toaster } from '@/components/ui/Toaster';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'ClaimAgent™ - Autonomous Auto Insurance Claims Platform',
@@ -33,8 +22,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <meta name="theme-color" content="#1e3a8a" />
+        {/* Load Google Fonts from CDN to avoid build-time fetch issues */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${inter.className} antialiased bg-gray-50 dark:bg-gray-900`}>
+      <body className="antialiased bg-gray-50 dark:bg-gray-900" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
         <Providers>
           <div className="min-h-screen flex flex-col">
             {/* Global Navigation */}
