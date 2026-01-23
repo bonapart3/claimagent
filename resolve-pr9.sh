@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script to resolve PR #9 merge conflicts
 
-set -e
+set -euo pipefail
 
 echo "=== Resolving PR #9 Merge Conflicts ==="
 
@@ -35,7 +35,15 @@ git merge origin/main || {
     # Resolve package.json
     echo "Resolving package.json..."
     # Add the @neondatabase/serverless dependency
-    sed -i '/"@heroicons\/react":/a\    "@neondatabase/serverless": "^0.9.5",' package.json
+    if ! grep -q "@neondatabase/serverless" package.json; then
+        sed -i '/"@heroicons\/react":/a\    "@neondatabase/serverless": "^0.9.5",' package.json
+        if ! grep -q "@neondatabase/serverless" package.json; then
+            echo "Error: Failed to add @neondatabase/serverless to package.json"
+            exit 1
+        fi
+    else
+        echo "  @neondatabase/serverless already present"
+    fi
     
     # Resolve railway.toml
     echo "Resolving railway.toml..."
@@ -63,17 +71,16 @@ EOF
     
     # Regenerate package-lock.json
     echo "Regenerating package-lock.json..."
-    npm install
+    if ! npm install; then
+        echo "Error: npm install failed. Please check for dependency conflicts."
+        exit 1
+    fi
     
     # Stage updated package-lock.json
     git add package-lock.json
     
     # Complete the merge
-    git commit -m "Resolve merge conflicts with main branch
-
-- Add @neondatabase/serverless dependency from main
-- Update railway.toml with migration command
-- Regenerate package-lock.json"
+    git commit -m "Resolve merge conflicts with main branch" -m "- Add @neondatabase/serverless dependency from main" -m "- Update railway.toml with migration command" -m "- Regenerate package-lock.json"
     
     echo "✓ Conflicts resolved and committed"
 }
