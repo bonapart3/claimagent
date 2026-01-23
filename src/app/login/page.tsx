@@ -3,14 +3,14 @@
 
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get('redirect') || '/claims/dashboard';
@@ -48,6 +48,79 @@ export default function LoginPage() {
   };
 
   return (
+    <div className="bg-white py-8 px-6 shadow-xl rounded-2xl">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <Alert variant="error" onClose={() => setError('')}>
+            {error}
+          </Alert>
+        )}
+
+        <Input
+          label="Email Address"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="adjuster@insurance.com"
+          required
+          autoComplete="email"
+        />
+
+        <Input
+          label="Password"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="••••••••"
+          required
+          autoComplete="current-password"
+        />
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <span className="ml-2 block text-sm text-gray-700">
+              Remember me
+            </span>
+          </label>
+
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-blue-600 hover:text-blue-500"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Signing in...' : 'Sign in'}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+function LoginFormFallback() {
+  return (
+    <div className="bg-white py-8 px-6 shadow-xl rounded-2xl">
+      <div className="animate-pulse space-y-6">
+        <div className="h-10 bg-gray-200 rounded"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Logo and Title */}
@@ -63,64 +136,10 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Login Form */}
-        <div className="bg-white py-8 px-6 shadow-xl rounded-2xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <Alert variant="error" onClose={() => setError('')}>
-                {error}
-              </Alert>
-            )}
-
-            <Input
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="adjuster@insurance.com"
-              required
-              autoComplete="email"
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-            />
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <span className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </span>
-              </label>
-
-              <Link
-                href="/forgot-password"
-                className="text-sm font-medium text-blue-600 hover:text-blue-500"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </form>
-
-        </div>
+        {/* Login Form with Suspense */}
+        <Suspense fallback={<LoginFormFallback />}>
+          <LoginForm />
+        </Suspense>
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-500">
@@ -130,4 +149,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

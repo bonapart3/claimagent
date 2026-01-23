@@ -3,76 +3,18 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-
-interface Claim {
-    id: string;
-    claimNumber: string;
-    status: string;
-    claimType: string;
-    lossDate: string;
-    createdAt: string;
-    estimatedAmount?: number;
-}
-
-interface DashboardStats {
-    totalClaims: number;
-    pendingClaims: number;
-    approvedClaims: number;
-    avgProcessingTime: string;
-}
+import { getStatusBadgeClasses } from '@/lib/utils/statusColors';
+import { useClaims, useClaimStats } from '@/lib/hooks/useClaims';
 
 export default function ClaimsDashboard() {
-    const [claims, setClaims] = useState<Claim[]>([]);
-    const [stats, setStats] = useState<DashboardStats | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [filter, setFilter] = useState<string>('all');
+    const { claims, isLoading, setStatus } = useClaims({ limit: 50 });
+    const { stats } = useClaimStats();
 
-    useEffect(() => {
-        fetchClaims();
-        fetchStats();
-    }, [filter]);
-
-    const fetchClaims = async () => {
-        try {
-            const response = await fetch(`/api/claims?status=${filter}`);
-            const data = await response.json();
-            if (data.success) {
-                setClaims(data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching claims:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const fetchStats = async () => {
-        try {
-            const response = await fetch('/api/claims/stats');
-            const data = await response.json();
-            if (data.success) {
-                setStats(data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching stats:', error);
-        }
-    };
-
-    const getStatusBadgeColor = (status: string) => {
-        const colors: Record<string, string> = {
-            SUBMITTED: 'bg-blue-100 text-blue-800',
-            UNDER_REVIEW: 'bg-yellow-100 text-yellow-800',
-            INVESTIGATING: 'bg-purple-100 text-purple-800',
-            APPROVED: 'bg-green-100 text-green-800',
-            REJECTED: 'bg-red-100 text-red-800',
-            PAID: 'bg-green-100 text-green-800',
-            FLAGGED_FRAUD: 'bg-red-100 text-red-800',
-        };
-        return colors[status] || 'bg-gray-100 text-gray-800';
+    const handleFilterChange = (status: string) => {
+        setStatus(status === 'all' ? '' : status);
     };
 
     return (
@@ -94,25 +36,25 @@ export default function ClaimsDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                         <Card>
                             <CardContent className="p-6">
-                                <div className="text-2xl font-bold text-gray-900">{stats.totalClaims}</div>
+                                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                                 <div className="text-sm text-gray-500">Total Claims</div>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardContent className="p-6">
-                                <div className="text-2xl font-bold text-yellow-600">{stats.pendingClaims}</div>
+                                <div className="text-2xl font-bold text-yellow-600">{stats.underReview}</div>
                                 <div className="text-sm text-gray-500">Pending Review</div>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardContent className="p-6">
-                                <div className="text-2xl font-bold text-green-600">{stats.approvedClaims}</div>
+                                <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
                                 <div className="text-sm text-gray-500">Approved</div>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardContent className="p-6">
-                                <div className="text-2xl font-bold text-blue-600">{stats.avgProcessingTime}</div>
+                                <div className="text-2xl font-bold text-blue-600">{stats.avgProcessingTime}d</div>
                                 <div className="text-sm text-gray-500">Avg. Processing Time</div>
                             </CardContent>
                         </Card>
@@ -121,16 +63,13 @@ export default function ClaimsDashboard() {
 
                 {/* Filter Tabs */}
                 <div className="flex space-x-2 mb-6">
-                    {['all', 'SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'PAID'].map(status => (
+                    {['all', 'SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'PAID'].map(filterStatus => (
                         <button
-                            key={status}
-                            onClick={() => setFilter(status)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === status
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                                }`}
+                            key={filterStatus}
+                            onClick={() => handleFilterChange(filterStatus)}
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-white text-gray-700 hover:bg-gray-100 data-[active=true]:bg-blue-600 data-[active=true]:text-white"
                         >
-                            {status === 'all' ? 'All Claims' : status.replace('_', ' ')}
+                            {filterStatus === 'all' ? 'All Claims' : filterStatus.replace('_', ' ')}
                         </button>
                     ))}
                 </div>
@@ -190,7 +129,7 @@ export default function ClaimsDashboard() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span
-                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClasses(
                                                         claim.status
                                                     )}`}
                                                 >
