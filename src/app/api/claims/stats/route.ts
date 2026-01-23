@@ -3,9 +3,19 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/utils/database';
+import { validateSession } from '@/lib/utils/validation';
 
 export async function GET(request: NextRequest) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         // Get basic stats
         const [
             totalClaims,

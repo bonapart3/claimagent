@@ -3,6 +3,7 @@
 
 import { ClaimData, ClaimStatus } from '@/lib/types/claim';
 import { FRAUD_THRESHOLD } from '@/lib/constants/thresholds';
+import { prisma } from '@/lib/utils/database';
 
 export interface PatternScore {
     score: number;
@@ -65,14 +66,94 @@ export class PatternDetector {
     }
 
     /**
-     * Check for repeat claimant patterns
+     * Check for repeat claimant patterns by querying database
      */
     private async checkRepeatClaimant(claim: any): Promise<{ score: number; indicators: string[] }> {
-        const score = 0;
+        let score = 0;
         const indicators: string[] = [];
 
-        // In production, query database for prior claims
-        // This is a placeholder for the pattern detection logic
+        try {
+            // Get policy holder info to find related claims
+            const policyId = claim.policyId || claim.policy?.id;
+            if (!policyId) return { score, indicators };
+
+            // Get the policy to find the holder
+            const policy = await prisma.policy.findUnique({
+                where: { id: policyId },
+                select: {
+                    holderEmail: true,
+                    holderPhone: true,
+                    holderFirstName: true,
+                    holderLastName: true,
+                },
+            });
+
+            if (!policy) return { score, indicators };
+
+            // Query for prior claims from same policyholder (by email or name)
+            const priorClaims = await prisma.claim.findMany({
+                where: {
+                    id: { not: claim.id }, // Exclude current claim
+                    policy: {
+                        OR: [
+                            { holderEmail: policy.holderEmail },
+                            {
+                                AND: [
+                                    { holderFirstName: policy.holderFirstName },
+                                    { holderLastName: policy.holderLastName },
+                                ],
+                            },
+                        ],
+                    },
+                },
+                select: {
+                    id: true,
+                    claimNumber: true,
+                    status: true,
+                    createdAt: true,
+                    lossType: true,
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 10,
+            });
+
+            // Score based on prior claim count
+            const claimCount = priorClaims.length;
+            if (claimCount >= 5) {
+                score += 30;
+                indicators.push(`Claimant has ${claimCount} prior claims in system`);
+            } else if (claimCount >= 3) {
+                score += 20;
+                indicators.push(`Claimant has ${claimCount} prior claims in system`);
+            } else if (claimCount >= 1) {
+                score += 10;
+                indicators.push(`Claimant has ${claimCount} prior claim(s) in system`);
+            }
+
+            // Check for claims within last 12 months
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+            const recentClaims = priorClaims.filter(c => c.createdAt > oneYearAgo);
+
+            if (recentClaims.length >= 2) {
+                score += 15;
+                indicators.push(`${recentClaims.length} claims filed within last 12 months`);
+            }
+
+            // Check for denied/fraud-flagged prior claims
+            const flaggedClaims = priorClaims.filter(
+                c => c.status === 'DENIED' || c.status === 'ESCALATED_SIU'
+            );
+
+            if (flaggedClaims.length > 0) {
+                score += 25;
+                indicators.push(`${flaggedClaims.length} prior claim(s) were denied or flagged for fraud`);
+            }
+
+        } catch (error) {
+            console.error('[PatternDetector] Error checking repeat claimant:', error);
+            // Don't fail the analysis, just return no score for this check
+        }
 
         return { score, indicators };
     }
