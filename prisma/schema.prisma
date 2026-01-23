@@ -1,117 +1,35 @@
-// ClaimAgent™ Database Schema
-// PostgreSQL with Prisma ORM
-// Supports audit trails, compliance, and multi-state operations
+// ClaimAgent Prisma Schema
+// Enterprise-grade P&C Insurance Claims Platform
+// Version: 3.0.0
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============================================================================
-// USER & AUTHENTICATION
+// ENUMS
 // ============================================================================
-
-model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  passwordHash  String
-  role          UserRole @default(ADJUSTER)
-  firstName     String
-  lastName      String
-  licenseNumber String?
-  state         String?
-  active        Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relations
-  claimsCreated  Claim[]       @relation("ClaimCreator")
-  claimsAssigned Claim[]       @relation("ClaimAssignee")
-  auditLogs      AuditLog[]
-  sessions       UserSession[]
-
-  @@index([email])
-  @@index([role])
-}
-
-model UserSession {
-  id           String   @id @default(uuid())
-  userId       String
-  token        String   @unique
-  expiresAt    DateTime
-  ipAddress    String?
-  userAgent    String?
-  createdAt    DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([token])
-  @@index([expiresAt])
-}
 
 enum UserRole {
   ADMIN
-  SUPERVISOR
   ADJUSTER
   SIU_SPECIALIST
+  SUPERVISOR
   UNDERWRITER
-  MARKETING
-  READONLY
+  AGENT
+  CUSTOMER
 }
 
-// ============================================================================
-// POLICY DATA
-// ============================================================================
-
-model Policy {
-  id                String   @id @default(uuid())
-  policyNumber      String   @unique
-  effectiveDate     DateTime
-  expirationDate    DateTime
-  state             String
-  policyType        String   // AUTO, COMMERCIAL_AUTO
-  status            PolicyStatus @default(ACTIVE)
-  
-  // Policyholder Information
-  holderFirstName   String
-  holderLastName    String
-  holderEmail       String?
-  holderPhone       String
-  holderAddress     String
-  holderCity        String
-  holderState       String
-  holderZip         String
-  
-  // Coverage Limits (in cents)
-  liabilityLimit    Int
-  collisionLimit    Int?
-  comprehensiveLimit Int?
-  umUimLimit        Int?
-  medicalPaymentLimit Int?
-  
-  // Deductibles (in cents)
-  collisionDeductible     Int?
-  comprehensiveDeductible Int?
-  
-  // Metadata
-  carrierId         String?
-  underwriterNotes  String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  // Relations
-  vehicles          Vehicle[]
-  claims            Claim[]
-
-  @@index([policyNumber])
-  @@index([state])
-  @@index([effectiveDate, expirationDate])
-  @@index([status])
+enum CarrierTier {
+  SMALL
+  REGIONAL
+  MIDSIZE
 }
 
 enum PolicyStatus {
@@ -121,156 +39,60 @@ enum PolicyStatus {
   SUSPENDED
 }
 
-model Vehicle {
-  id              String   @id @default(uuid())
-  policyId        String
-  vin             String   @unique
-  year            Int
-  make            String
-  model           String
-  trim            String?
-  color           String?
-  licensePlate    String?
-  licensePlateState String?
-  usage           VehicleUsage @default(PERSONAL)
-  hasSensors      Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  policy          Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
-  claims          Claim[]
-
-  @@index([policyId])
-  @@index([vin])
-}
-
-enum VehicleUsage {
-  PERSONAL
-  BUSINESS
-  RIDESHARE
-  DELIVERY
-}
-
-// ============================================================================
-// CLAIM DATA
-// ============================================================================
-
-model Claim {
-  id                String      @id @default(uuid())
-  claimNumber       String      @unique
-  policyId          String
-  vehicleId         String?
-  
-  // Incident Details
-  incidentDate      DateTime
-  incidentTime      String?
-  incidentLocation  String
-  incidentCity      String
-  incidentState     String
-  incidentZip       String?
-  description       String
-  policeReportNum   String?
-  weatherConditions String?
-  
-  // Claim Type
-  claimType         ClaimType
-  lossType          LossType[]
-  severity          ClaimSeverity @default(LOW)
-  
-  // Status & Routing
-  status            ClaimStatus @default(SUBMITTED)
-  routingDecision   RoutingDecision?
-  autoApproved      Boolean @default(false)
-  
-  // Financial (all amounts in cents)
-  estimatedAmount   Int?
-  approvedAmount    Int?
-  paidAmount        Int?
-  reserveAmount     Int?
-  deductibleAmount  Int?
-  
-  // Fraud & Risk
-  fraudScore        Float?
-  fraudFlags        String[]
-  escalationReasons String[]
-  
-  // Assignment
-  createdById       String
-  assignedToId      String?
-  
-  // Timestamps
-  submittedAt       DateTime @default(now())
-  acknowledgedAt    DateTime?
-  approvedAt        DateTime?
-  paidAt            DateTime?
-  closedAt          DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  // Relations
-  policy            Policy   @relation(fields: [policyId], references: [id])
-  vehicle           Vehicle? @relation(fields: [vehicleId], references: [id])
-  createdBy         User     @relation("ClaimCreator", fields: [createdById], references: [id])
-  assignedTo        User?    @relation("ClaimAssignee", fields: [assignedToId], references: [id])
-  documents         Document[]
-  damages           Damage[]
-  participants      Participant[]
-  communications    Communication[]
-  assessments       Assessment[]
-  payments          Payment[]
-  auditLogs         AuditLog[]
-  phaseCompletions  PhaseCompletion[]
-
-  @@index([claimNumber])
-  @@index([policyId])
-  @@index([status])
-  @@index([incidentDate])
-  @@index([createdById])
-  @@index([assignedToId])
-  @@index([fraudScore])
+enum CoverageType {
+  LIABILITY
+  COLLISION
+  COMPREHENSIVE
+  UM_UIM
+  MEDICAL_PAYMENTS
+  RENTAL_REIMBURSEMENT
+  ROADSIDE_ASSISTANCE
 }
 
 enum ClaimType {
-  COLLISION
-  COMPREHENSIVE
-  LIABILITY
-  UNINSURED_MOTORIST
-  MEDICAL_PAYMENT
-  TOTAL_LOSS
+  AUTO_LIABILITY
+  AUTO_COLLISION
+  AUTO_COMPREHENSIVE
+  AUTO_UNINSURED_MOTORIST
+  AUTO_PIP
+  AUTO_MEDICAL_PAYMENTS
 }
 
 enum LossType {
-  PROPERTY_DAMAGE
-  BODILY_INJURY
+  COLLISION
   THEFT
   VANDALISM
   WEATHER
-  ANIMAL
   FIRE
+  GLASS
+  HIT_AND_RUN
+  ANIMAL
   OTHER
 }
 
-enum ClaimSeverity {
+enum Severity {
   LOW
   MEDIUM
   HIGH
-  CATASTROPHIC
+  CRITICAL
+}
+
+enum Complexity {
+  SIMPLE
+  MODERATE
+  COMPLEX
 }
 
 enum ClaimStatus {
-  SUBMITTED
-  ACKNOWLEDGED
-  UNDER_REVIEW
+  INTAKE
   INVESTIGATION
-  PENDING_INFO
+  EVALUATION
+  PENDING_APPROVAL
   APPROVED
-  PARTIALLY_APPROVED
-  DENIED
-  PAID
+  PAYMENT_PROCESSING
   CLOSED
-  ESCALATED_SIU
-  ESCALATED_LEGAL
+  DENIED
+  SUSPENDED
 }
 
 enum RoutingDecision {
@@ -278,10 +100,335 @@ enum RoutingDecision {
   HUMAN_REVIEW
   SIU_ESCALATION
   SPECIALIST_REVIEW
-  DRAFT_HOLD_DENIAL
-  SALVAGE_SPECIALIST
-  EXPRESS_DESK
   LEGAL_REVIEW
+  DRAFT_DENIAL
+}
+
+enum ParticipantRole {
+  INSURED
+  CLAIMANT
+  WITNESS
+  OTHER_DRIVER
+  PASSENGER
+  PEDESTRIAN
+  ATTORNEY
+  MEDICAL_PROVIDER
+}
+
+enum DocumentType {
+  PHOTO_VEHICLE
+  PHOTO_SCENE
+  POLICE_REPORT
+  MEDICAL_RECORD
+  REPAIR_ESTIMATE
+  INVOICE
+  RECEIPT
+  CORRESPONDENCE
+  LEGAL_DOCUMENT
+  OTHER
+}
+
+enum CommunicationType {
+  ACKNOWLEDGMENT
+  INFO_REQUEST
+  STATUS_UPDATE
+  APPROVAL_LETTER
+  DENIAL_LETTER
+  RESERVATION_OF_RIGHTS
+  SETTLEMENT_OFFER
+  PAYMENT_NOTICE
+  INTERNAL_NOTE
+}
+
+enum CommDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum CommStatus {
+  DRAFT
+  PENDING_APPROVAL
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum PaymentMethod {
+  CHECK
+  ACH
+  WIRE
+  DEBIT_CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum AgentStatus {
+  SUCCESS
+  FAILURE
+  SKIPPED
+  ESCALATED
+}
+
+enum HandbookType {
+  CLAIMS_MANUAL
+  SIU_PLAYBOOK
+  CORRESPONDENCE_GUIDE
+  UNDERWRITING_GUIDELINES
+  STATE_SPECIFIC
+  TRAINING_MATERIAL
+}
+
+// ============================================================================
+// CORE ENTITIES
+// ============================================================================
+
+model Carrier {
+  id                   String      @id @default(uuid())
+  name                 String      @db.VarChar(255)
+  code                 String      @unique @db.VarChar(50)
+  annualWrittenPremium Decimal     @map("annual_written_premium") @db.Decimal(15, 2)
+  licenseNumber        String      @map("license_number") @db.VarChar(100)
+  domiciledState       String      @map("domiciled_state") @db.VarChar(2)
+  isActive             Boolean     @default(true) @map("is_active")
+  tier                 CarrierTier @default(REGIONAL)
+  createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  users        User[]
+  policies     Policy[]
+  claims       Claim[]
+  fraudRules   FraudRule[]
+  handbooks    Handbook[]
+  claimMetrics ClaimMetric[]
+
+  @@index([code])
+  @@index([isActive])
+  @@map("carriers")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique @db.VarChar(255)
+  passwordHash   String    @map("password_hash") @db.VarChar(255)
+  firstName      String    @map("first_name") @db.VarChar(100)
+  lastName       String    @map("last_name") @db.VarChar(100)
+  role           UserRole
+  carrierId      String?   @map("carrier_id")
+  canAutoApprove Boolean   @default(false) @map("can_auto_approve")
+  approvalLimit  Decimal?  @map("approval_limit") @db.Decimal(10, 2)
+  lastLoginAt    DateTime? @map("last_login_at") @db.Timestamptz
+  loginCount     Int       @default(0) @map("login_count")
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  carrier   Carrier?   @relation(fields: [carrierId], references: [id])
+  sessions  Session[]
+  claims    Claim[]    @relation("AdjusterClaims")
+  documents Document[]
+  auditLogs AuditLog[]
+
+  @@index([email])
+  @@index([carrierId, role])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ============================================================================
+// POLICY MANAGEMENT
+// ============================================================================
+
+model Policy {
+  id              String       @id @default(uuid())
+  policyNumber    String       @unique @map("policy_number") @db.VarChar(50)
+  carrierId       String       @map("carrier_id")
+  holderFirstName String       @map("holder_first_name") @db.VarChar(100)
+  holderLastName  String       @map("holder_last_name") @db.VarChar(100)
+  holderEmail     String?      @map("holder_email") @db.VarChar(255)
+  holderPhone     String?      @map("holder_phone") @db.VarChar(20)
+  holderAddress   Json         @map("holder_address")
+  effectiveDate   DateTime     @map("effective_date") @db.Date
+  expirationDate  DateTime     @map("expiration_date") @db.Date
+  status          PolicyStatus @default(ACTIVE)
+  annualPremium   Decimal      @map("annual_premium") @db.Decimal(10, 2)
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  carrier   Carrier    @relation(fields: [carrierId], references: [id])
+  coverages Coverage[]
+  vehicles  Vehicle[]
+  claims    Claim[]
+
+  @@index([policyNumber])
+  @@index([carrierId])
+  @@index([status])
+  @@index([effectiveDate, expirationDate])
+  @@map("policies")
+}
+
+model Coverage {
+  id                   String       @id @default(uuid())
+  policyId             String       @map("policy_id")
+  type                 CoverageType
+  limitPerPerson       Decimal?     @map("limit_per_person") @db.Decimal(10, 2)
+  limitPerAccident     Decimal?     @map("limit_per_accident") @db.Decimal(10, 2)
+  limitProperty        Decimal?     @map("limit_property") @db.Decimal(10, 2)
+  deductible           Decimal?     @db.Decimal(10, 2)
+  uninsuredMotorist    Boolean      @default(false) @map("uninsured_motorist")
+  underinsuredMotorist Boolean      @default(false) @map("underinsured_motorist")
+  medicalPayments      Decimal?     @map("medical_payments") @db.Decimal(10, 2)
+  createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId, type])
+  @@map("coverages")
+}
+
+model Vehicle {
+  id                String    @id @default(uuid())
+  policyId          String    @map("policy_id")
+  vin               String    @unique @db.VarChar(17)
+  year              Int
+  make              String    @db.VarChar(50)
+  model             String    @db.VarChar(50)
+  trim              String?   @db.VarChar(50)
+  color             String?   @db.VarChar(30)
+  mileage           Int?
+  msrp              Decimal?  @db.Decimal(10, 2)
+  currentAcv        Decimal?  @map("current_acv") @db.Decimal(10, 2)
+  lastValuationDate DateTime? @map("last_valuation_date") @db.Date
+  hasSensors        Boolean   @default(false) @map("has_sensors")
+  hasAdas           Boolean   @default(false) @map("has_adas")
+  fuelType          String?   @map("fuel_type") @db.VarChar(30)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  policy Policy  @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  claims Claim[]
+
+  @@index([vin])
+  @@index([policyId])
+  @@map("vehicles")
+}
+
+// ============================================================================
+// CLAIM MANAGEMENT
+// ============================================================================
+
+model Claim {
+  id                   String           @id @default(uuid())
+  claimNumber          String           @unique @map("claim_number") @db.VarChar(50)
+  carrierId            String           @map("carrier_id")
+  policyId             String           @map("policy_id")
+  vehicleId            String?          @map("vehicle_id")
+  adjusterId           String?          @map("adjuster_id")
+  lossDate             DateTime         @map("loss_date") @db.Date
+  reportedDate         DateTime         @default(now()) @map("reported_date") @db.Timestamptz
+  lossLocation         Json             @map("loss_location")
+  lossDescription      String           @map("loss_description")
+  claimType            ClaimType        @map("claim_type")
+  lossType             LossType         @map("loss_type")
+  severity             Severity
+  complexity           Complexity
+  status               ClaimStatus      @default(INTAKE)
+  subStatus            String?          @map("sub_status") @db.VarChar(50)
+  estimatedLoss        Decimal?         @map("estimated_loss") @db.Decimal(10, 2)
+  reserveAmount        Decimal?         @map("reserve_amount") @db.Decimal(10, 2)
+  paidAmount           Decimal          @default(0) @map("paid_amount") @db.Decimal(10, 2)
+  deductible           Decimal?         @db.Decimal(10, 2)
+  isTotalLoss          Boolean          @default(false) @map("is_total_loss")
+  isFraudulent         Boolean          @default(false) @map("is_fraudulent")
+  fraudScore           Int              @default(0) @map("fraud_score")
+  requiresHumanReview  Boolean          @default(false) @map("requires_human_review")
+  autoApprovalEligible Boolean          @default(false) @map("auto_approval_eligible")
+  routingDecision      RoutingDecision? @map("routing_decision")
+  escalationReason     String?          @map("escalation_reason")
+  acknowledgedAt       DateTime?        @map("acknowledged_at") @db.Timestamptz
+  investigatedAt       DateTime?        @map("investigated_at") @db.Timestamptz
+  evaluatedAt          DateTime?        @map("evaluated_at") @db.Timestamptz
+  settledAt            DateTime?        @map("settled_at") @db.Timestamptz
+  closedAt             DateTime?        @map("closed_at") @db.Timestamptz
+  metadata             Json?
+  createdAt            DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  carrier        Carrier            @relation(fields: [carrierId], references: [id])
+  policy         Policy             @relation(fields: [policyId], references: [id])
+  vehicle        Vehicle?           @relation(fields: [vehicleId], references: [id])
+  adjuster       User?              @relation("AdjusterClaims", fields: [adjusterId], references: [id])
+  participants   ClaimParticipant[]
+  documents      Document[]
+  communications Communication[]
+  fraudAnalysis  FraudAnalysis?
+  valuation      Valuation?
+  settlement     Settlement?
+  agentLogs      AgentLog[]
+  auditLogs      AuditLog[]
+
+  @@index([claimNumber])
+  @@index([carrierId])
+  @@index([policyId])
+  @@index([status])
+  @@index([lossDate])
+  @@index([fraudScore])
+  @@index([requiresHumanReview])
+  @@map("claims")
+}
+
+model ClaimParticipant {
+  id                    String          @id @default(uuid())
+  claimId               String          @map("claim_id")
+  role                  ParticipantRole
+  firstName             String          @map("first_name") @db.VarChar(100)
+  lastName              String          @map("last_name") @db.VarChar(100)
+  email                 String?         @db.VarChar(255)
+  phone                 String?         @db.VarChar(20)
+  address               Json?
+  licenseNumber         String?         @map("license_number") @db.VarChar(50)
+  licenseState          String?         @map("license_state") @db.VarChar(2)
+  vehicleInfo           Json?           @map("vehicle_info")
+  insuranceCarrier      String?         @map("insurance_carrier") @db.VarChar(255)
+  insurancePolicyNumber String?         @map("insurance_policy_number") @db.VarChar(50)
+  injuryDescription     String?         @map("injury_description")
+  medicalTreatment      Boolean         @default(false) @map("medical_treatment")
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId, role])
+  @@map("claim_participants")
 }
 
 // ============================================================================
@@ -289,139 +436,30 @@ enum RoutingDecision {
 // ============================================================================
 
 model Document {
-  id            String   @id @default(uuid())
-  claimId       String
+  id            String       @id @default(uuid())
+  claimId       String       @map("claim_id")
   type          DocumentType
-  fileName      String
-  filePath      String
-  fileSize      Int
-  mimeType      String
-  uploadedBy    String
-  
-  // OCR/IDP Extracted Data
-  extractedData Json?
-  ocrConfidence Float?
-  
-  // Photo Analysis (for damage photos)
-  aiAnalysis    Json?
-  damageAreas   String[]
-  
-  createdAt     DateTime @default(now())
-  
-  // Relations
-  claim         Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  fileName      String       @map("file_name") @db.VarChar(255)
+  fileSize      Int          @map("file_size")
+  mimeType      String       @map("mime_type") @db.VarChar(100)
+  storageUrl    String       @map("storage_url")
+  extractedText String?      @map("extracted_text")
+  extractedData Json?        @map("extracted_data")
+  ocrConfidence Float?       @map("ocr_confidence") @db.Real
+  aiAnalysis    Json?        @map("ai_analysis")
+  damageAreas   String[]     @map("damage_areas")
+  estimatedCost Decimal?     @map("estimated_cost") @db.Decimal(10, 2)
+  uploadedBy    String?      @map("uploaded_by")
+  uploadedAt    DateTime     @default(now()) @map("uploaded_at") @db.Timestamptz
+  verifiedAt    DateTime?    @map("verified_at") @db.Timestamptz
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
-  @@index([claimId])
-  @@index([type])
-}
+  claim    Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  uploader User? @relation(fields: [uploadedBy], references: [id])
 
-enum DocumentType {
-  PHOTO_DAMAGE
-  PHOTO_SCENE
-  REPAIR_ESTIMATE
-  POLICE_REPORT
-  MEDICAL_BILL
-  MEDICAL_RECORD
-  TELEMATICS
-  CORRESPONDENCE
-  RELEASE_FORM
-  PAYMENT_PROOF
-  OTHER
-}
-
-// ============================================================================
-// DAMAGE ASSESSMENT
-// ============================================================================
-
-model Damage {
-  id              String   @id @default(uuid())
-  claimId         String
-  area            String   // Front, Rear, Driver Side, etc.
-  component       String   // Bumper, Door, Window, etc.
-  damageType      DamageType
-  severity        DamageSeverity
-  estimatedCost   Int?     // in cents
-  
-  // AI Analysis
-  aiDetected      Boolean  @default(false)
-  aiConfidence    Float?
-  requiresReview  Boolean  @default(false)
-  
-  createdAt       DateTime @default(now())
-  
-  // Relations
-  claim           Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
-
-  @@index([claimId])
-}
-
-enum DamageType {
-  SCRATCH
-  DENT
-  CRACK
-  SHATTER
-  PAINT_DAMAGE
-  STRUCTURAL
-  MECHANICAL
-  TOTAL_LOSS
-}
-
-enum DamageSeverity {
-  MINOR
-  MODERATE
-  SEVERE
-  TOTAL
-}
-
-// ============================================================================
-// PARTICIPANTS & PARTIES
-// ============================================================================
-
-model Participant {
-  id              String   @id @default(uuid())
-  claimId         String
-  role            ParticipantRole
-  
-  firstName       String
-  lastName        String
-  email           String?
-  phone           String?
-  address         String?
-  city            String?
-  state           String?
-  zip             String?
-  
-  insuranceCarrier String?
-  policyNumber    String?
-  
-  injuries        String[]
-  injurySeverity  InjurySeverity?
-  
-  vehicleInfo     Json?    // Make, model, year, VIN if available
-  
-  createdAt       DateTime @default(now())
-  
-  // Relations
-  claim           Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
-
-  @@index([claimId])
-}
-
-enum ParticipantRole {
-  CLAIMANT
-  INSURED
-  THIRD_PARTY
-  WITNESS
-  INJURED_PARTY
-  OTHER_DRIVER
-}
-
-enum InjurySeverity {
-  NONE
-  MINOR
-  MODERATE
-  SEVERE
-  FATAL
+  @@index([claimId, type])
+  @@map("documents")
 }
 
 // ============================================================================
@@ -429,151 +467,160 @@ enum InjurySeverity {
 // ============================================================================
 
 model Communication {
-  id              String   @id @default(uuid())
-  claimId         String
-  type            CommunicationType
-  direction       CommunicationDirection
-  
-  recipientEmail  String?
-  recipientName   String?
-  subject         String?
-  body            String
-  template        String?
-  
-  sentAt          DateTime?
-  deliveredAt     DateTime?
-  openedAt        DateTime?
-  
-  createdBy       String
-  createdAt       DateTime @default(now())
-  
-  // Relations
-  claim           Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  id                String            @id @default(uuid())
+  claimId           String            @map("claim_id")
+  type              CommunicationType
+  direction         CommDirection
+  recipientEmail    String?           @map("recipient_email") @db.VarChar(255)
+  recipientPhone    String?           @map("recipient_phone") @db.VarChar(20)
+  recipientName     String?           @map("recipient_name") @db.VarChar(200)
+  subject           String?           @db.VarChar(500)
+  body              String
+  template          String?           @db.VarChar(100)
+  sentAt            DateTime?         @map("sent_at") @db.Timestamptz
+  deliveredAt       DateTime?         @map("delivered_at") @db.Timestamptz
+  openedAt          DateTime?         @map("opened_at") @db.Timestamptz
+  status            CommStatus        @default(DRAFT)
+  stateRequirements Json?             @map("state_requirements")
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz
 
-  @@index([claimId])
-  @@index([type])
-}
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
 
-enum CommunicationType {
-  ACKNOWLEDGMENT
-  INFO_REQUEST
-  STATUS_UPDATE
-  RESERVATION_OF_RIGHTS
-  APPROVAL
-  DENIAL
-  PAYMENT_NOTICE
-  CLOSING_LETTER
-  INTERNAL_NOTE
-}
-
-enum CommunicationDirection {
-  OUTBOUND
-  INBOUND
-  INTERNAL
+  @@index([claimId, type])
+  @@map("communications")
 }
 
 // ============================================================================
-// AGENT ASSESSMENTS & PHASE TRACKING
+// FRAUD DETECTION
 // ============================================================================
 
-model Assessment {
-  id                String   @id @default(uuid())
-  claimId           String
-  phase             AssessmentPhase
-  agentType         String   // e.g., "DataParser", "FraudDetector"
-  
-  findings          Json
-  recommendations   Json?
-  confidence        Float?
-  flagsRaised       String[]
-  requiresHuman     Boolean  @default(false)
-  
-  completedAt       DateTime @default(now())
-  
-  // Relations
-  claim             Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+model FraudAnalysis {
+  id                String    @id @default(uuid())
+  claimId           String    @unique @map("claim_id")
+  overallScore      Int       @default(0) @map("overall_score")
+  riskLevel         RiskLevel @default(LOW) @map("risk_level")
+  repeatedClaimant  Boolean   @default(false) @map("repeated_claimant")
+  overlappingLoss   Boolean   @default(false) @map("overlapping_loss")
+  stagingIndicators Boolean   @default(false) @map("staging_indicators")
+  inconsistentStory Boolean   @default(false) @map("inconsistent_story")
+  medicalFraudFlags Json?     @map("medical_fraud_flags")
+  billingAnomalies  Boolean   @default(false) @map("billing_anomalies")
+  rapidReporting    Boolean   @default(false) @map("rapid_reporting")
+  excessiveClaims   Boolean   @default(false) @map("excessive_claims")
+  flaggedReasons    String[]  @map("flagged_reasons")
+  siuRecommendation String?   @map("siu_recommendation")
+  siuReviewed       Boolean   @default(false) @map("siu_reviewed")
+  siuReviewedAt     DateTime? @map("siu_reviewed_at") @db.Timestamptz
+  siuNotes          String?   @map("siu_notes")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  @@index([claimId])
-  @@index([phase])
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([overallScore])
+  @@index([riskLevel])
+  @@map("fraud_analyses")
 }
 
-enum AssessmentPhase {
-  INTAKE_TRIAGE
-  INVESTIGATION
-  FRAUD_DETECTION
-  EVALUATION
-  SETTLEMENT
-  COMMUNICATIONS
-  QA_CHECK
-  FINAL_VALIDATION
-}
+model FraudRule {
+  id               String   @id @default(uuid())
+  carrierId        String   @map("carrier_id")
+  name             String   @db.VarChar(255)
+  description      String
+  ruleLogic        Json     @map("rule_logic")
+  scoreImpact      Int      @map("score_impact")
+  isActive         Boolean  @default(true) @map("is_active")
+  triggeredCount   Int      @default(0) @map("triggered_count")
+  truePositiveRate Float?   @map("true_positive_rate") @db.Real
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-model PhaseCompletion {
-  id              String   @id @default(uuid())
-  claimId         String
-  phase           AssessmentPhase
-  status          PhaseStatus
-  completedBy     String   // Agent or User ID
-  notes           String?
-  completedAt     DateTime @default(now())
-  
-  // Relations
-  claim           Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  carrier Carrier @relation(fields: [carrierId], references: [id])
 
-  @@unique([claimId, phase])
-  @@index([claimId])
-}
-
-enum PhaseStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  FAILED
-  SKIPPED
+  @@index([carrierId, isActive])
+  @@map("fraud_rules")
 }
 
 // ============================================================================
-// PAYMENTS & SETTLEMENTS
+// VALUATION & SETTLEMENT
 // ============================================================================
 
-model Payment {
-  id                String   @id @default(uuid())
-  claimId           String
-  paymentType       PaymentType
-  amount            Int      // in cents
-  payeeName         String
-  payeeAddress      String?
-  
-  method            PaymentMethod
-  checkNumber       String?
-  transactionId     String?
-  
-  approvedBy        String
-  approvedAt        DateTime
-  processedAt       DateTime?
-  
-  createdAt         DateTime @default(now())
-  
-  // Relations
-  claim             Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+model Valuation {
+  id                  String   @id @default(uuid())
+  claimId             String   @unique @map("claim_id")
+  preAccidentValue    Decimal  @map("pre_accident_value") @db.Decimal(10, 2)
+  postAccidentValue   Decimal? @map("post_accident_value") @db.Decimal(10, 2)
+  diminishedValue     Decimal? @map("diminished_value") @db.Decimal(10, 2)
+  isTotalLoss         Boolean  @default(false) @map("is_total_loss")
+  totalLossThreshold  Float?   @map("total_loss_threshold") @db.Real
+  salvageValue        Decimal? @map("salvage_value") @db.Decimal(10, 2)
+  estimatedRepairCost Decimal? @map("estimated_repair_cost") @db.Decimal(10, 2)
+  actualRepairCost    Decimal? @map("actual_repair_cost") @db.Decimal(10, 2)
+  laborCost           Decimal? @map("labor_cost") @db.Decimal(10, 2)
+  partsCost           Decimal? @map("parts_cost") @db.Decimal(10, 2)
+  valuationSource     String?  @map("valuation_source") @db.VarChar(100)
+  apiResponse         Json?    @map("api_response")
+  comparables         Json?
+  valuedAt            DateTime @default(now()) @map("valued_at") @db.Timestamptz
+  valuedBy            String?  @map("valued_by") @db.VarChar(100)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  @@index([claimId])
-  @@index([paymentType])
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@map("valuations")
 }
 
-enum PaymentType {
-  CLAIM_SETTLEMENT
-  DEDUCTIBLE_REFUND
-  SUPPLEMENTAL
-  SALVAGE_RECOVERY
-  SUBROGATION
+model Settlement {
+  id                String        @id @default(uuid())
+  claimId           String        @unique @map("claim_id")
+  totalPaid         Decimal       @map("total_paid") @db.Decimal(10, 2)
+  damageAmount      Decimal?      @map("damage_amount") @db.Decimal(10, 2)
+  medicalAmount     Decimal?      @map("medical_amount") @db.Decimal(10, 2)
+  rentalAmount      Decimal?      @map("rental_amount") @db.Decimal(10, 2)
+  otherAmount       Decimal?      @map("other_amount") @db.Decimal(10, 2)
+  deductibleApplied Decimal?      @map("deductible_applied") @db.Decimal(10, 2)
+  paymentMethod     PaymentMethod @map("payment_method")
+  paymentStatus     PaymentStatus @default(PENDING) @map("payment_status")
+  checkNumber       String?       @map("check_number") @db.VarChar(50)
+  transactionId     String?       @map("transaction_id") @db.VarChar(100)
+  paidAt            DateTime?     @map("paid_at") @db.Timestamptz
+  releaseObtained   Boolean       @default(false) @map("release_obtained")
+  releaseDate       DateTime?     @map("release_date") @db.Date
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([paymentStatus])
+  @@map("settlements")
 }
 
-enum PaymentMethod {
-  CHECK
-  ACH
-  WIRE
-  CARD
+// ============================================================================
+// AGENT SYSTEM LOGS
+// ============================================================================
+
+model AgentLog {
+  id              String      @id @default(uuid())
+  claimId         String      @map("claim_id")
+  agentName       String      @map("agent_name") @db.VarChar(100)
+  agentGroup      String      @map("agent_group") @db.VarChar(50)
+  phase           String      @db.VarChar(50)
+  action          String      @db.VarChar(255)
+  input           Json?
+  output          Json?
+  confidence      Float?      @db.Real
+  status          AgentStatus @default(SUCCESS)
+  errorMessage    String?     @map("error_message")
+  executionTimeMs Int?        @map("execution_time_ms")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId, agentName])
+  @@index([phase, status])
+  @@map("agent_logs")
 }
 
 // ============================================================================
@@ -581,132 +628,107 @@ enum PaymentMethod {
 // ============================================================================
 
 model AuditLog {
-  id              String   @id @default(uuid())
-  claimId         String?
-  userId          String?
-  action          String
-  entityType      String   // Claim, Policy, Payment, etc.
-  entityId        String
-  changes         Json?
-  ipAddress       String?
-  userAgent       String?
-  timestamp       DateTime @default(now())
-  
-  // Relations
-  claim           Claim?   @relation(fields: [claimId], references: [id], onDelete: SetNull)
-  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id          String   @id @default(uuid())
+  entityType  String   @map("entity_type") @db.VarChar(50)
+  entityId    String   @map("entity_id")
+  claimId     String?  @map("claim_id")
+  userId      String?  @map("user_id")
+  actorType   String   @map("actor_type") @db.VarChar(20)
+  action      String   @db.VarChar(50)
+  description String
+  beforeState Json?    @map("before_state")
+  afterState  Json?    @map("after_state")
+  ipAddress   String?  @map("ip_address") @db.VarChar(45)
+  userAgent   String?  @map("user_agent")
+  metadata    Json?
+  timestamp   DateTime @default(now()) @db.Timestamptz
 
+  claim Claim? @relation(fields: [claimId], references: [id], onDelete: SetNull)
+  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
   @@index([claimId])
   @@index([userId])
   @@index([timestamp])
-  @@index([action])
+  @@map("audit_logs")
 }
 
 // ============================================================================
-// FRAUD & WATCHLIST
+// KNOWLEDGE BASE & HANDBOOKS
 // ============================================================================
 
-model FraudWatchlist {
-  id              String   @id @default(uuid())
-  type            WatchlistType
-  value           String   @unique  // Email, phone, VIN, name hash
-  reason          String
-  severity        FraudSeverity
-  
-  addedBy         String
-  addedAt         DateTime @default(now())
-  expiresAt       DateTime?
-  
-  active          Boolean  @default(true)
+model Handbook {
+  id               String       @id @default(uuid())
+  carrierId        String       @map("carrier_id")
+  title            String       @db.VarChar(255)
+  type             HandbookType
+  version          String       @db.VarChar(20)
+  effectiveDate    DateTime     @map("effective_date") @db.Date
+  content          String
+  sections         Json
+  indexed          Boolean      @default(false)
+  vectorEmbeddings Json?        @map("vector_embeddings")
+  isActive         Boolean      @default(true) @map("is_active")
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
-  @@index([type])
-  @@index([value])
-  @@index([active])
-}
+  carrier Carrier @relation(fields: [carrierId], references: [id])
 
-enum WatchlistType {
-  EMAIL
-  PHONE
-  VIN
-  NAME
-  ADDRESS
-  PROVIDER
-}
-
-enum FraudSeverity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
+  @@index([carrierId, type, isActive])
+  @@map("handbooks")
 }
 
 // ============================================================================
-// VALUATION & STATE RULES
+// STATE REGULATIONS
 // ============================================================================
 
-model ValuationCache {
-  id              String   @id @default(uuid())
-  vin             String
-  year            Int
-  make            String
-  model           String
-  trim            String?
-  mileage         Int?
-  condition       String?
-  
-  acv             Int      // Actual Cash Value in cents
-  salvageValue    Int?     // in cents
-  source          String   // API provider name
-  
-  retrievedAt     DateTime @default(now())
-  expiresAt       DateTime
-
-  @@unique([vin, retrievedAt])
-  @@index([vin])
-  @@index([expiresAt])
-}
-
-model StateTotalLossRule {
-  id              String   @id @default(uuid())
-  state           String   @unique
-  thresholdType   ThresholdType
-  thresholdValue  Float    // Percentage (e.g., 75.0 for 75%)
-  formula         String?  // Description of calculation
-  effectiveDate   DateTime
-  source          String   // DOI bulletin reference
-  
-  updatedAt       DateTime @updatedAt
+model StateRegulation {
+  id                 String   @id @default(uuid())
+  state              String   @unique @db.VarChar(2)
+  totalLossThreshold Float    @map("total_loss_threshold") @db.Real
+  totalLossFormula   String   @map("total_loss_formula") @db.VarChar(50)
+  allowsDv           Boolean  @default(false) @map("allows_dv")
+  dvLimitations      String?  @map("dv_limitations")
+  acknowledgmentDays Int      @map("acknowledgment_days")
+  investigationDays  Int      @map("investigation_days")
+  paymentDays        Int      @map("payment_days")
+  requiresRor        Boolean  @default(false) @map("requires_ror")
+  specialNotices     Json?    @map("special_notices")
+  doiWebsite         String?  @map("doi_website") @db.VarChar(255)
+  doiPhone           String?  @map("doi_phone") @db.VarChar(20)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   @@index([state])
-}
-
-enum ThresholdType {
-  PERCENTAGE_ACV
-  PERCENTAGE_REPAIR
-  FIXED_AMOUNT
-  COMBINED
+  @@map("state_regulations")
 }
 
 // ============================================================================
 // ANALYTICS & REPORTING
 // ============================================================================
 
-model ClaimMetrics {
-  id                    String   @id @default(uuid())
-  date                  DateTime @unique
-  
-  totalClaims           Int      @default(0)
-  autoApproved          Int      @default(0)
-  humanReview           Int      @default(0)
-  siuEscalated          Int      @default(0)
-  
-  avgCycleTimeHours     Float?
-  avgProcessingCost     Float?
-  fraudDetectionRate    Float?
-  
-  totalPaidAmount       BigInt   @default(0)
-  
-  createdAt             DateTime @default(now())
+model ClaimMetric {
+  id                  String   @id @default(uuid())
+  carrierId           String   @map("carrier_id")
+  periodStart         DateTime @map("period_start") @db.Date
+  periodEnd           DateTime @map("period_end") @db.Date
+  totalClaims         Int      @map("total_claims")
+  newClaims           Int      @map("new_claims")
+  closedClaims        Int      @map("closed_claims")
+  totalIncurred       Decimal  @map("total_incurred") @db.Decimal(15, 2)
+  totalPaid           Decimal  @map("total_paid") @db.Decimal(15, 2)
+  averageClaimCost    Decimal  @map("average_claim_cost") @db.Decimal(10, 2)
+  autoApprovedCount   Int      @map("auto_approved_count")
+  autoApprovalRate    Float    @map("auto_approval_rate") @db.Real
+  avgCycleTimeHours   Float    @map("avg_cycle_time_hours") @db.Real
+  fraudFlagsCount     Int      @map("fraud_flags_count")
+  fraudConfirmedCount Int      @map("fraud_confirmed_count")
+  fraudSavings        Decimal? @map("fraud_savings") @db.Decimal(10, 2)
+  errorRate           Float    @map("error_rate") @db.Real
+  customerSatScore    Float?   @map("customer_sat_score") @db.Real
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  @@index([date])
+  carrier Carrier @relation(fields: [carrierId], references: [id])
+
+  @@index([carrierId, periodStart])
+  @@map("claim_metrics")
 }

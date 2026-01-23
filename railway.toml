@@ -1,12 +1,19 @@
-# Railway deployment configuration for ClaimAgent
-
-[build]
-builder = "nixpacks"
+railway.toml
+builder = "RAILPACK"
 buildCommand = "npm run build"
+watchPatterns = ["/src/**"]
+buildEnvironment = "V3"
 
 [deploy]
-startCommand = "npx prisma migrate deploy && npm run start"
-healthcheckPath = "/api/health"
-healthcheckTimeout = 100
-restartPolicyType = "on_failure"
+runtime = "V2"
+numReplicas = 1
+startCommand = "npm run start"
+overlapSeconds = 0
+drainingSeconds = 0
+healthcheckPath = "health.claimagent.io"
+preDeployCommand = ["npm run dev"]
+sleepApplication = true
+useLegacyStacker = false
+multiRegionConfig = {"us-west2":{"numReplicas":1}}
+restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
