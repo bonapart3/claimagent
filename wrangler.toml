@@ -1,7 +1,7 @@
 # Cloudflare Workers Configuration for ClaimAgent™
 # https://developers.cloudflare.com/workers/wrangler/configuration/
-
-name = "claimagent"
+# wrangler.toml
+name = 'claimagentdeploy'
 main = "workers/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]

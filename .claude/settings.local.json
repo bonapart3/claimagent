@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma validate:*)",
+      "Bash(npx prisma:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:www.youtube.com)",
+      "Bash(ls -la \"C:\\\\claimagent\\\\src\\\\app\\\\api\"\" 2>&1 || find \"C:claimagentsrcappapi\" -type f -name \"*.ts \")",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
