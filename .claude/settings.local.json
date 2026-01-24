@@ -10,7 +10,8 @@
       "Bash(ls -la \"C:\\\\claimagent\\\\src\\\\app\\\\api\"\" 2>&1 || find \"C:claimagentsrcappapi\" -type f -name \"*.ts \")",
       "Bash(npm run build:*)",
       "Bash(npm install:*)",
-      "Bash(railway status:*)"
+      "Bash(railway status:*)",
+      "Bash(railway login:*)"
     ]
   }
 }
