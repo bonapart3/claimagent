@@ -7,7 +7,7 @@
  * @module agents/orchestrator
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/database';
 import { AuditLogger } from '../utils/auditLogger';
 import type { Claim, AgentResult, OrchestratorChecklistStatus, EscalationTrigger } from '../types/claim';
 
@@ -22,13 +22,13 @@ import * as QAAgents from './qa';
 import { FinalValidator } from './validator/finalValidator';
 
 export class MasterOrchestrator {
-    private db: PrismaClient;
+    private db: typeof prisma;
     private auditLogger: AuditLogger;
     private checklist: OrchestratorChecklistStatus;
     private escalationTriggers: EscalationTrigger[];
 
     constructor() {
-        this.db = new PrismaClient();
+        this.db = prisma;
         this.auditLogger = new AuditLogger();
         this.initializeChecklist();
         this.escalationTriggers = [];

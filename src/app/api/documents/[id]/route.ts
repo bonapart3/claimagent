@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/utils/database';
 import { auditLog } from '@/lib/utils/auditLogger';
+import { validateSession } from '@/lib/utils/validation';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -15,6 +16,15 @@ export async function GET(
     { params }: RouteParams
 ) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         const { id } = await params;
         const { searchParams } = new URL(request.url);
         const download = searchParams.get('download') === 'true';
@@ -81,6 +91,15 @@ export async function PATCH(
     { params }: RouteParams
 ) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         const { id } = await params;
         const body = await request.json();
 
@@ -137,6 +156,15 @@ export async function DELETE(
     { params }: RouteParams
 ) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         const { id } = await params;
 
         const document = await prisma.document.findUnique({

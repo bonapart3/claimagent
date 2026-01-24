@@ -60,3 +60,4 @@ test-results/
 # Misc
 *.pem
 .env*.local
+package-lock.json

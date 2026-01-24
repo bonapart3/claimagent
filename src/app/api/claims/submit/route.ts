@@ -1,160 +1,82 @@
+// src/app/api/claims/submit/route.ts
+// Submit New Claim API Route
+
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/utils/database';
 import { validateSession } from '@/lib/utils/validation';
 import { auditLog } from '@/lib/utils/auditLogger';
-import { ClaimUpdateRequestSchema } from '@/lib/schemas/api';
 import {
     validateRequestBody,
     validationErrorResponse,
-    validatePathParams,
 } from '@/lib/utils/requestValidator';
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
 
-const prisma = new PrismaClient();
-
-// Schema for path parameters
-const ClaimIdParamsSchema = z.object({
-    id: z.string().uuid('Invalid claim ID format'),
+// Schema for claim submission
+const ClaimSubmissionSchema = z.object({
+    policyId: z.string().uuid('Invalid policy ID'),
+    vehicleId: z.string().uuid('Invalid vehicle ID').optional(),
+    claimType: z.enum([
+        'AUTO_LIABILITY',
+        'AUTO_COLLISION',
+        'AUTO_COMPREHENSIVE',
+        'AUTO_UNINSURED_MOTORIST',
+        'AUTO_PIP',
+        'AUTO_MEDICAL_PAYMENTS',
+    ]),
+    lossType: z.enum([
+        'COLLISION',
+        'THEFT',
+        'VANDALISM',
+        'WEATHER',
+        'FIRE',
+        'GLASS',
+        'HIT_AND_RUN',
+        'ANIMAL',
+        'OTHER',
+    ]),
+    lossDate: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
+    lossLocation: z.object({
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().max(2).optional(),
+        zip: z.string().optional(),
+        description: z.string().optional(),
+    }),
+    lossDescription: z.string().min(10, 'Please provide a detailed description').max(5000),
+    estimatedAmount: z.number().positive().optional(),
+    policeReportFiled: z.boolean().optional(),
+    policeReportNumber: z.string().optional(),
+    injuries: z.boolean().optional(),
+    injuryDescription: z.string().optional(),
 });
 
 /**
- * GET /api/claims/[id]
- * Retrieve detailed claim information
+ * Generate a unique claim number
  */
-export async function GET(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
-    try {
-        // Authentication
-        const session = await validateSession(request);
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Validate path parameters
-        const paramsValidation = validatePathParams(params, ClaimIdParamsSchema);
-        if (!paramsValidation.success || !paramsValidation.data) {
-            return validationErrorResponse(paramsValidation);
-        }
-
-        const { id: claimId } = paramsValidation.data;
-
-        // Fetch claim with all related data
-        const claim = await prisma.claim.findUnique({
-            where: { id: claimId },
-            include: {
-                documents: {
-                    select: {
-                        id: true,
-                        fileName: true,
-                        fileType: true,
-                        documentType: true,
-                        fileUrl: true,
-                        createdAt: true,
-                    },
-                },
-                notes: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 50,
-                },
-                activities: {
-                    orderBy: { timestamp: 'desc' },
-                    take: 100,
-                },
-                payments: {
-                    orderBy: { createdAt: 'desc' },
-                },
-                fraudAnalysis: true,
-                valuation: true,
-                aiAssessments: {
-                    orderBy: { createdAt: 'desc' },
-                },
-                escalations: {
-                    where: { status: { in: ['OPEN', 'IN_REVIEW'] } },
-                },
-                assignedUser: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                        role: true,
-                    },
-                },
-            },
-        });
-
-        if (!claim) {
-            return NextResponse.json(
-                { error: 'Claim not found' },
-                { status: 404 }
-            );
-        }
-
-        // Authorization check - ensure user has access to this claim
-        if (claim.assignedTo !== session.userId && session.role !== 'ADMIN') {
-            await auditLog({
-                userId: session.userId,
-                action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
-                entityType: 'Claim',
-                entityId: claimId,
-                ipAddress: request.headers.get('x-forwarded-for') || undefined,
-            });
-
-            return NextResponse.json(
-                { error: 'Access denied - insufficient permissions' },
-                { status: 403 }
-            );
-        }
-
-        // Log access
-        await auditLog({
-            userId: session.userId,
-            action: 'CLAIM_VIEWED',
-            entityType: 'Claim',
-            entityId: claimId,
-            ipAddress: request.headers.get('x-forwarded-for') || undefined,
-        });
-
-        return NextResponse.json({
-            success: true,
-            claim,
-        });
-
-    } catch (error) {
-        console.error('[GET_CLAIM_ERROR]', error);
-        return NextResponse.json(
-            { error: 'Failed to retrieve claim' },
-            { status: 500 }
-        );
-    }
+function generateClaimNumber(): string {
+    const year = new Date().getFullYear();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `CLM-${year}-${random}`;
 }
 
 /**
- * PATCH /api/claims/[id]
- * Update claim information
+ * POST /api/claims/submit
+ * Submit a new insurance claim
  */
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest) {
     try {
+        // Authenticate user
         const session = await validateSession(request);
         if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
         }
 
-        // Validate path parameters
-        const paramsValidation = validatePathParams(params, ClaimIdParamsSchema);
-        if (!paramsValidation.success || !paramsValidation.data) {
-            return validationErrorResponse(paramsValidation);
-        }
-
-        const { id: claimId } = paramsValidation.data;
-
-        // Validate request body against schema
-        const validation = await validateRequestBody(request, ClaimUpdateRequestSchema, {
+        // Validate request body
+        const validation = await validateRequestBody(request, ClaimSubmissionSchema, {
             blockOnThreat: true,
             logThreats: true,
         });
@@ -163,107 +85,180 @@ export async function PATCH(
             return validationErrorResponse(validation);
         }
 
-        const updates = validation.data;
+        const claimData = validation.data;
 
-        // Fetch existing claim
-        const existingClaim = await prisma.claim.findUnique({
-            where: { id: claimId },
-        });
-
-        if (!existingClaim) {
-            return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
-        }
-
-        // Authorization check
-        if (existingClaim.assignedTo !== session.userId && session.role !== 'ADMIN' && session.role !== 'SUPERVISOR') {
-            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-        }
-
-        // Update claim
-        const updatedClaim = await prisma.claim.update({
-            where: { id: claimId },
-            data: {
-                ...updates,
-                updatedAt: new Date(),
+        // Verify policy exists and is active
+        const policy = await prisma.policy.findUnique({
+            where: { id: claimData.policyId },
+            include: {
+                carrier: true,
             },
         });
 
-        // Log activity
-        await prisma.claimActivity.create({
+        if (!policy) {
+            return NextResponse.json(
+                { success: false, error: 'Policy not found' },
+                { status: 404 }
+            );
+        }
+
+        if (policy.status !== 'ACTIVE') {
+            return NextResponse.json(
+                { success: false, error: 'Policy is not active' },
+                { status: 400 }
+            );
+        }
+
+        // Check if loss date is within policy period
+        const lossDate = new Date(claimData.lossDate);
+        if (lossDate < policy.effectiveDate || lossDate > policy.expirationDate) {
+            return NextResponse.json(
+                { success: false, error: 'Loss date is outside policy coverage period' },
+                { status: 400 }
+            );
+        }
+
+        // Verify vehicle if provided
+        if (claimData.vehicleId) {
+            const vehicle = await prisma.vehicle.findUnique({
+                where: { id: claimData.vehicleId },
+            });
+
+            if (!vehicle || vehicle.policyId !== claimData.policyId) {
+                return NextResponse.json(
+                    { success: false, error: 'Vehicle not found or not covered by this policy' },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // Generate unique claim number
+        const claimNumber = generateClaimNumber();
+
+        // Determine initial severity based on claim data
+        let severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW';
+        if (claimData.injuries) {
+            severity = 'HIGH';
+        } else if (claimData.estimatedAmount && claimData.estimatedAmount > 10000) {
+            severity = 'MEDIUM';
+        } else if (claimData.estimatedAmount && claimData.estimatedAmount > 25000) {
+            severity = 'HIGH';
+        }
+
+        // Create claim in database
+        const claim = await prisma.claim.create({
             data: {
-                claimId,
-                activityType: 'STATUS_CHANGED',
-                performedBy: session.userId,
-                description: `Claim updated by ${session.userId}`,
-                metadata: { updates },
+                id: randomUUID(),
+                claimNumber,
+                carrierId: policy.carrierId,
+                policyId: claimData.policyId,
+                vehicleId: claimData.vehicleId,
+                claimType: claimData.claimType,
+                lossType: claimData.lossType,
+                lossDate: lossDate,
+                reportedDate: new Date(),
+                lossLocation: claimData.lossLocation,
+                lossDescription: claimData.lossDescription,
+                severity,
+                complexity: 'SIMPLE', // Will be updated by agents
+                status: 'INTAKE',
+                estimatedLoss: claimData.estimatedAmount,
+                fraudScore: 0,
+                requiresHumanReview: false,
+                autoApprovalEligible: true,
+                metadata: {
+                    policeReportFiled: claimData.policeReportFiled,
+                    policeReportNumber: claimData.policeReportNumber,
+                    injuries: claimData.injuries,
+                    injuryDescription: claimData.injuryDescription,
+                    submittedBy: session.userId,
+                    submittedAt: new Date().toISOString(),
+                },
             },
         });
 
-        // Audit log
+        // Create audit log entry
         await auditLog({
+            claimId: claim.id,
             userId: session.userId,
-            action: 'CLAIM_UPDATED',
+            action: 'CLAIM_SUBMITTED',
             entityType: 'Claim',
-            entityId: claimId,
-            changes: updates,
+            entityId: claim.id,
+            details: {
+                claimNumber,
+                claimType: claimData.claimType,
+                lossType: claimData.lossType,
+                estimatedAmount: claimData.estimatedAmount,
+            },
             ipAddress: request.headers.get('x-forwarded-for') || undefined,
         });
 
+        // Return success with claim details
         return NextResponse.json({
             success: true,
-            claim: updatedClaim,
-        });
+            message: 'Claim submitted successfully',
+            data: {
+                id: claim.id,
+                claimNumber: claim.claimNumber,
+                status: claim.status,
+                severity: claim.severity,
+                createdAt: claim.createdAt,
+            },
+        }, { status: 201 });
 
     } catch (error) {
-        console.error('[UPDATE_CLAIM_ERROR]', error);
-        return NextResponse.json({ error: 'Failed to update claim' }, { status: 500 });
+        console.error('[CLAIM_SUBMIT_ERROR]', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to submit claim' },
+            { status: 500 }
+        );
     }
 }
 
 /**
- * DELETE /api/claims/[id]
- * Soft delete claim (Admin only)
+ * GET /api/claims/submit
+ * Return information about claim submission requirements
  */
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
-    try {
-        const session = await validateSession(request);
-        if (!session || session.role !== 'ADMIN') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Validate path parameters
-        const paramsValidation = validatePathParams(params, ClaimIdParamsSchema);
-        if (!paramsValidation.success || !paramsValidation.data) {
-            return validationErrorResponse(paramsValidation);
-        }
-
-        const { id: claimId } = paramsValidation.data;
-
-        // Mark claim as withdrawn
-        await prisma.claim.update({
-            where: { id: claimId },
-            data: {
-                status: 'WITHDRAWN',
-                updatedAt: new Date(),
-            },
-        });
-
-        await auditLog({
-            userId: session.userId,
-            action: 'CLAIM_DELETED',
-            entityType: 'Claim',
-            entityId: claimId,
-            ipAddress: request.headers.get('x-forwarded-for') || undefined,
-        });
-
-        return NextResponse.json({ success: true, message: 'Claim withdrawn' });
-
-    } catch (error) {
-        console.error('[DELETE_CLAIM_ERROR]', error);
-        return NextResponse.json({ error: 'Failed to delete claim' }, { status: 500 });
-    }
+export async function GET(request: NextRequest) {
+    return NextResponse.json({
+        success: true,
+        endpoint: '/api/claims/submit',
+        method: 'POST',
+        description: 'Submit a new insurance claim',
+        requiredFields: [
+            'policyId',
+            'claimType',
+            'lossType',
+            'lossDate',
+            'lossLocation',
+            'lossDescription',
+        ],
+        optionalFields: [
+            'vehicleId',
+            'estimatedAmount',
+            'policeReportFiled',
+            'policeReportNumber',
+            'injuries',
+            'injuryDescription',
+        ],
+        claimTypes: [
+            'AUTO_LIABILITY',
+            'AUTO_COLLISION',
+            'AUTO_COMPREHENSIVE',
+            'AUTO_UNINSURED_MOTORIST',
+            'AUTO_PIP',
+            'AUTO_MEDICAL_PAYMENTS',
+        ],
+        lossTypes: [
+            'COLLISION',
+            'THEFT',
+            'VANDALISM',
+            'WEATHER',
+            'FIRE',
+            'GLASS',
+            'HIT_AND_RUN',
+            'ANIMAL',
+            'OTHER',
+        ],
+    });
 }
-

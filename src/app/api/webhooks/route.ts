@@ -4,6 +4,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auditLog } from '@/lib/utils/auditLogger';
+import { createHmac, timingSafeEqual } from 'crypto';
+
+// Webhook secrets per source (should be in environment variables)
+const WEBHOOK_SECRETS: Record<string, string> = {
+    'payment-gateway': process.env.WEBHOOK_SECRET_PAYMENT || '',
+    'fraud-service': process.env.WEBHOOK_SECRET_FRAUD || '',
+    'document-service': process.env.WEBHOOK_SECRET_DOCUMENT || '',
+};
 
 // Webhook event types
 type WebhookEvent =
@@ -30,8 +38,8 @@ export async function POST(request: NextRequest) {
         const webhookSource = request.headers.get('x-webhook-source');
         const body = await request.json() as WebhookPayload;
 
-        // Validate webhook signature (in production, use proper HMAC validation)
-        if (!validateSignature(body, signature)) {
+        // Validate webhook signature using HMAC-SHA256
+        if (!validateSignature(body, signature, webhookSource)) {
             return NextResponse.json(
                 { success: false, error: 'Invalid signature' },
                 { status: 401 }
@@ -90,13 +98,48 @@ export async function GET(request: NextRequest) {
     });
 }
 
-function validateSignature(payload: WebhookPayload, signature: string | null): boolean {
-    // In production, implement proper HMAC signature validation
-    // using a shared secret between systems
+function validateSignature(
+    payload: WebhookPayload,
+    signature: string | null,
+    source: string | null
+): boolean {
+    // Require signature
     if (!signature) return false;
 
-    // For demo, accept any signature
-    return true;
+    // Get secret for this webhook source
+    const secret = source ? WEBHOOK_SECRETS[source] : null;
+
+    // If no secret configured for this source, reject
+    // In dev/demo mode, allow if WEBHOOK_ALLOW_UNSIGNED is set
+    if (!secret) {
+        if (process.env.WEBHOOK_ALLOW_UNSIGNED === 'true') {
+            console.warn(`[WEBHOOK] Allowing unsigned webhook from ${source} - DEMO MODE ONLY`);
+            return true;
+        }
+        console.error(`[WEBHOOK] No secret configured for source: ${source}`);
+        return false;
+    }
+
+    // Compute expected signature using HMAC-SHA256
+    const payloadString = JSON.stringify(payload);
+    const expectedSignature = createHmac('sha256', secret)
+        .update(payloadString)
+        .digest('hex');
+
+    // Use timing-safe comparison to prevent timing attacks
+    try {
+        const signatureBuffer = Buffer.from(signature, 'hex');
+        const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+
+        if (signatureBuffer.length !== expectedBuffer.length) {
+            return false;
+        }
+
+        return timingSafeEqual(signatureBuffer, expectedBuffer);
+    } catch (error) {
+        console.error('[WEBHOOK] Signature validation error:', error);
+        return false;
+    }
 }
 
 async function processWebhook(

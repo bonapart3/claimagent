@@ -178,16 +178,16 @@ Content-Type: application/json
 
 | Claim Characteristics | Auto-Approval | Human Review | Escalation |
 |-----------------------|:-------------:|:------------:|:----------:|
-| Amount ≤ $2,500 + low risk | ✓ | | |
+| Amount ≤ $2,500 + Low Risk | ✓ | | |
 | Amount > $2,500 | | ✓ | |
-| Fraud Score ≥ 50 | | | ✓ |
+| Fraud Score ≥ 50 | | | ✓ SIU |
 | Bodily Injury | | ✓ | |
-| Total Loss | | ✓ | |
-| Sensor Repair Risk | | ✓ | |
-| Coverage Dispute | | | ✓ |
-| Litigation Indicator | | | ✓ |
+| Total Loss | | ✓ Salvage Specialist | |
+| Sensor Repair Risk | | ✓ Express Desk | |
+| Coverage Dispute | | | ✓ Specialist (Draft & Hold) |
+| Litigation Indicator | | | ✓ Legal Review |
 
-## Tests
+## Testing
 
 ### Run All Tests
 

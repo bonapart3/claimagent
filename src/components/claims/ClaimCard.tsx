@@ -6,6 +6,7 @@
 import { memo } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
+import { getStatusBadgeClasses } from '@/lib/utils/statusColors';
 
 interface ClaimCardProps {
     claim: {
@@ -26,20 +27,6 @@ interface ClaimCardProps {
 }
 
 export const ClaimCard = memo(function ClaimCard({ claim }: ClaimCardProps) {
-    const getStatusColor = (status: string) => {
-        const colors: Record<string, string> = {
-            SUBMITTED: 'bg-blue-100 text-blue-800 border-blue-200',
-            UNDER_REVIEW: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            INVESTIGATING: 'bg-purple-100 text-purple-800 border-purple-200',
-            APPROVED: 'bg-green-100 text-green-800 border-green-200',
-            REJECTED: 'bg-red-100 text-red-800 border-red-200',
-            PAID: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-            FLAGGED_FRAUD: 'bg-red-100 text-red-800 border-red-200',
-            CLOSED: 'bg-gray-100 text-gray-800 border-gray-200',
-        };
-        return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
-    };
-
     const getStatusIcon = (status: string) => {
         const icons: Record<string, string> = {
             SUBMITTED: '📝',
@@ -64,7 +51,7 @@ export const ClaimCard = memo(function ClaimCard({ claim }: ClaimCardProps) {
                             <p className="text-sm text-gray-500">{claim.claimType}</p>
                         </div>
                         <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClasses(
                                 claim.status
                             )}`}
                         >

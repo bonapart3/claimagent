@@ -27,6 +27,8 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@prisma/client": "^5.8.0",
+    "@neondatabase/serverless": "^0.9.5",
+    "@prisma/client": "^5.22.0",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
@@ -51,6 +53,7 @@
     "next-auth": "^4.24.5",
     "next-themes": "^0.4.6",
     "openai": "^4.24.1",
+    "r2-explorer": "^1.1.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
@@ -86,11 +89,12 @@
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.32",
     "prettier": "^3.1.1",
-    "prisma": "^5.8.0",
+    "prisma": "^5.22.0",
     "tailwindcss": "^3.4.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wrangler": "^4.60.0"
   },
   "engines": {
     "node": ">=18.0.0",
