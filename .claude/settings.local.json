@@ -12,7 +12,8 @@
       "Bash(npm install:*)",
       "Bash(railway status:*)",
       "Bash(railway login:*)",
-      "Bash(railway up:*)"
+      "Bash(railway up:*)",
+      "Bash(railway logs:*)"
     ]
   }
 }

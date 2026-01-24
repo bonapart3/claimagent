@@ -1,8 +1,17 @@
 // src/app/layout.tsx
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import { Toaster } from '@/components/ui/Toaster';
+
+// Force dynamic rendering for all pages (they need auth context)
+export const dynamic = 'force-dynamic';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   title: 'ClaimAgent™ - Autonomous Auto Insurance Claims Platform',
@@ -10,7 +19,6 @@ export const metadata: Metadata = {
   keywords: 'insurance claims, auto claims, AI claims processing, fraud detection, claims automation',
   authors: [{ name: 'ClaimAgent™ Team' }],
   robots: 'noindex, nofollow', // Production: remove this
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
 };
 
 export default function RootLayout({
