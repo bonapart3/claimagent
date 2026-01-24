@@ -1,4 +1,5 @@
 [build]
+<<<<<<< Updated upstream
 builder = "nixpacks"
 buildCommand = "npm run build"
 
@@ -12,21 +13,17 @@ restartPolicyMaxRetries = 3
 [environments.production]
 PORT = "3000"
 railway.toml
+=======
+>>>>>>> Stashed changes
 builder = "RAILPACK"
 buildCommand = "npm run build"
 watchPatterns = ["/src/**"]
-buildEnvironment = "V3"
 
 [deploy]
 runtime = "V2"
 numReplicas = 1
 startCommand = "npm run start"
-overlapSeconds = 0
-drainingSeconds = 0
-healthcheckPath = "health.claimagent.io"
-preDeployCommand = ["npm run dev"]
+healthcheckPath = "/api/health"
 sleepApplication = true
-useLegacyStacker = false
-multiRegionConfig = {"us-west2":{"numReplicas":1}}
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
