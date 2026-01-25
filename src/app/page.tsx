@@ -16,13 +16,8 @@ export default async function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">C</span>
-              </div>
-              <span className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
-                ClaimAgent
-              </span>
+            <div className="flex items-center">
+              <img src="/logo.jpg" alt="ClaimAgent" className="h-10 w-auto" />
             </div>
             <div className="flex items-center space-x-4">
               <Link
