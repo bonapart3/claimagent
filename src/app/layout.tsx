@@ -29,7 +29,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <head>
-          <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+          <link rel="icon" href="/logo.jpg" type="image/jpeg" />
           <meta name="theme-color" content="#2563eb" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
