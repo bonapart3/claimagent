@@ -264,6 +264,25 @@ model Session {
 }
 
 // ============================================================================
+// CLERK USER SYNC (External Authentication)
+// ============================================================================
+
+model ClerkUser {
+  id        String   @id @default(uuid())
+  clerkId   String   @unique @map("clerk_id")
+  email     String   @unique @db.VarChar(255)
+  firstName String?  @map("first_name") @db.VarChar(100)
+  lastName  String?  @map("last_name") @db.VarChar(100)
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([clerkId])
+  @@index([email])
+  @@map("clerk_users")
+}
+
+// ============================================================================
 // POLICY MANAGEMENT
 // ============================================================================
 
