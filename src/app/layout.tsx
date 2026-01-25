@@ -14,10 +14,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Veridicus - Ship AI Products That Matter',
-  description: 'From ClaimAgent to Conduct.me - build, deploy, scale. AI-powered solutions for modern enterprises.',
-  keywords: 'AI, claims processing, fact-checking, multi-agent orchestration, enterprise AI',
-  authors: [{ name: 'Veridicus Team' }],
+  title: 'ClaimAgent - AI-Powered Claims Processing',
+  description: 'Autonomous auto insurance claims with 50-state compliance, fraud detection, and automated decision routing.',
+  keywords: 'insurance claims, auto claims, AI claims processing, fraud detection, claims automation',
+  authors: [{ name: 'ClaimAgent Team' }],
 };
 
 export default function RootLayout({
