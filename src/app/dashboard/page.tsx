@@ -24,9 +24,9 @@ export default async function DashboardPage() {
             <div className="flex items-center space-x-6">
               <Link href="/dashboard" className="flex items-center space-x-2">
                 <div className="w-7 h-7 rounded-md bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">V</span>
+                  <span className="text-white font-bold text-xs">C</span>
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white">Veridicus</span>
+                <span className="font-semibold text-gray-900 dark:text-white">ClaimAgent</span>
               </Link>
               <nav className="hidden md:flex items-center space-x-4">
                 <Link href="/claims/dashboard" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
