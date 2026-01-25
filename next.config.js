@@ -178,6 +178,9 @@ const nextConfig = {
     // Page Extensions
     pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
 
+    // Exclude workers from build
+    excludeDefaultMomentLocales: true,
+
     // Generate ETags
     generateEtags: true,
 
