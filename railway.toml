@@ -8,6 +8,6 @@ runtime = "V2"
 numReplicas = 1
 startCommand = "npm run start"
 healthcheckPath = "/api/health"
-sleepApplication = true
+sleepApplication = false
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
