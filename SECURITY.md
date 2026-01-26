@@ -8,7 +8,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 **DO NOT** open a public GitHub issue for security vulnerabilities.
 
-Instead, please email us at: **security@claimagent.io**
+Instead, please email us at: **tyler@claimagent.io**
 
 Include the following in your report:
 
@@ -121,7 +121,7 @@ Valid reports may receive:
 
 ## Security Contacts
 
-- **Security Team**: security@claimagent.io
+- **Security Team**: tyler@claimagent.io
 - **Emergency Hotline**: 1-800-CLAIM-AI (for critical issues)
 - **PGP Key**: Available upon request
 

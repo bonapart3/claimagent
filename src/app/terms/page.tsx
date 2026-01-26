@@ -132,8 +132,8 @@ export default function TermsPage() {
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">10. Contact</h2>
               <p className="text-gray-600 dark:text-gray-400">
                 Questions about these Terms of Service may be directed to{' '}
-                <a href="mailto:legal@claimagent.io" className="text-blue-600 hover:text-blue-700">
-                  legal@claimagent.io
+                <a href="mailto:tyler@claimagent.io" className="text-blue-600 hover:text-blue-700">
+                  tyler@claimagent.io
                 </a>
               </p>
             </section>

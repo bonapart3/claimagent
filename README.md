@@ -263,7 +263,7 @@ npm run test:coverage
 ## Support
 
 - **Documentation**: https://docs.claimagent.io
-- **Email**: contact@claimagent.io
+- **Email**: tyler@claimagent.io
 - **Phone**: 1-800-CLAIM-AI (1-409-308-9357)
 - **Status Page**: https://status.claimagent.io
 

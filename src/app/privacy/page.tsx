@@ -108,8 +108,8 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">6. Contact Us</h2>
               <p className="text-gray-600 dark:text-gray-400">
                 If you have questions about this Privacy Policy, please contact us at{' '}
-                <a href="mailto:privacy@claimagent.io" className="text-blue-600 hover:text-blue-700">
-                  privacy@claimagent.io
+                <a href="mailto:tyler@claimagent.io" className="text-blue-600 hover:text-blue-700">
+                  tyler@claimagent.io
                 </a>
               </p>
             </section>
