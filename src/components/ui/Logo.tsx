@@ -18,7 +18,7 @@ export function Logo({ className = '', size = 'md', variant = 'full' }: LogoProp
   if (variant === 'icon') {
     return (
       <div
-        className={`flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 ${className}`}
+        className={`flex items-center justify-center rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 ${className}`}
         style={{ width: iconSize, height: iconSize }}
       >
         <svg
@@ -29,14 +29,14 @@ export function Logo({ className = '', size = 'md', variant = 'full' }: LogoProp
         >
           <path
             d="M9 12l2 2 4-4"
-            stroke="white"
+            stroke="#f59e0b"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
             d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"
-            stroke="white"
+            stroke="#fbbf24"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -49,7 +49,7 @@ export function Logo({ className = '', size = 'md', variant = 'full' }: LogoProp
   return (
     <div className={`flex items-center gap-2 ${className}`} style={{ height }}>
       <div
-        className="flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600"
+        className="flex items-center justify-center rounded-lg bg-gradient-to-br from-slate-800 to-slate-900"
         style={{ width: iconSize, height: iconSize }}
       >
         <svg
@@ -60,14 +60,14 @@ export function Logo({ className = '', size = 'md', variant = 'full' }: LogoProp
         >
           <path
             d="M9 12l2 2 4-4"
-            stroke="white"
+            stroke="#f59e0b"
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
             d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"
-            stroke="white"
+            stroke="#fbbf24"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -78,7 +78,7 @@ export function Logo({ className = '', size = 'md', variant = 'full' }: LogoProp
         className="font-semibold tracking-tight text-gray-900 dark:text-white"
         style={{ fontSize: height * 0.5 }}
       >
-        Claim<span className="text-blue-600">Agent</span>
+        Claim<span className="text-amber-500">Agent</span>
       </span>
     </div>
   );

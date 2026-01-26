@@ -124,21 +124,21 @@ export default function PricingPage() {
                 key={tier.name}
                 className={`rounded-2xl p-8 ${
                   tier.highlighted
-                    ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white ring-4 ring-blue-600/20'
+                    ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-white ring-4 ring-amber-500/20'
                     : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800'
                 }`}
               >
                 <h3 className={`text-xl font-semibold ${tier.highlighted ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
                   {tier.name}
                 </h3>
-                <p className={`mt-2 text-sm ${tier.highlighted ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'}`}>
+                <p className={`mt-2 text-sm ${tier.highlighted ? 'text-amber-200' : 'text-gray-600 dark:text-gray-400'}`}>
                   {tier.description}
                 </p>
                 <div className="mt-6 flex items-baseline">
                   <span className={`text-4xl font-bold ${tier.highlighted ? 'text-white' : 'text-gray-900 dark:text-white'}`}>
                     {tier.price === 'Custom' ? '' : '$'}{tier.price}
                   </span>
-                  <span className={`ml-1 ${tier.highlighted ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'}`}>
+                  <span className={`ml-1 ${tier.highlighted ? 'text-amber-200' : 'text-gray-600 dark:text-gray-400'}`}>
                     {tier.period}
                   </span>
                 </div>
@@ -146,14 +146,14 @@ export default function PricingPage() {
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start">
                       <svg
-                        className={`w-5 h-5 mr-3 flex-shrink-0 ${tier.highlighted ? 'text-blue-200' : 'text-blue-600 dark:text-blue-400'}`}
+                        className={`w-5 h-5 mr-3 flex-shrink-0 ${tier.highlighted ? 'text-slate-400' : 'text-amber-500 dark:text-amber-400'}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      <span className={`text-sm ${tier.highlighted ? 'text-blue-50' : 'text-gray-600 dark:text-gray-400'}`}>
+                      <span className={`text-sm ${tier.highlighted ? 'text-slate-100' : 'text-gray-600 dark:text-gray-400'}`}>
                         {feature}
                       </span>
                     </li>
@@ -163,7 +163,7 @@ export default function PricingPage() {
                   href={tier.href}
                   className={`mt-8 block w-full py-3 px-4 rounded-lg text-center font-medium transition-all ${
                     tier.highlighted
-                      ? 'bg-white text-blue-600 hover:bg-blue-50'
+                      ? 'bg-white text-amber-500 hover:bg-amber-50'
                       : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'
                   }`}
                 >
@@ -234,7 +234,7 @@ export default function PricingPage() {
           </p>
           <Link
             href="/contact"
-            className="inline-flex px-8 py-4 rounded-xl bg-blue-600 text-white font-medium text-lg hover:bg-blue-700 transition-all"
+            className="inline-flex px-8 py-4 rounded-xl bg-amber-500 text-white font-medium text-lg hover:bg-amber-600 transition-all"
           >
             Book a Demo
           </Link>

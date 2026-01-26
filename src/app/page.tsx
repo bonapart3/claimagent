@@ -67,7 +67,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/sign-up"
-                className="text-sm font-medium px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+                className="text-sm font-medium px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-gray-100 transition-colors"
               >
                 Get Started
               </Link>
@@ -108,7 +108,7 @@ export default function LandingPage() {
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="inline-block text-center px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                  className="inline-block text-center px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900"
                 >
                   Get Started
                 </Link>
@@ -120,7 +120,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950" />
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-white to-slate-50 dark:from-gray-950 dark:via-gray-900 dark:to-slate-950" />
 
         <div
           className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
@@ -133,7 +133,7 @@ export default function LandingPage() {
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white tracking-tight leading-[1.1]">
             AI-Powered
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600">
               Claims Processing
             </span>
           </h1>
@@ -146,13 +146,13 @@ export default function LandingPage() {
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/sign-up"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium text-lg hover:bg-slate-800 dark:hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               Start Free Trial
             </Link>
             <Link
               href="/contact"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 text-white font-medium text-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-amber-500 text-white font-medium text-lg hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               Book a Demo
             </Link>
@@ -199,16 +199,16 @@ export default function LandingPage() {
 
           {/* Dashboard Preview */}
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
-            <div className="bg-gray-800 px-4 py-3 flex items-center space-x-2">
+            <div className="bg-slate-800 px-4 py-3 flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <span className="ml-4 text-sm text-gray-400">ClaimAgent Dashboard</span>
             </div>
             <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-8 min-h-[400px] flex items-center justify-center">
               <div className="text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
@@ -216,7 +216,7 @@ export default function LandingPage() {
                 <p className="text-gray-600 dark:text-gray-400 mb-6">Sign up to see the full claims management experience</p>
                 <Link
                   href="/sign-up"
-                  className="inline-flex px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all"
+                  className="inline-flex px-6 py-3 rounded-lg bg-amber-500 text-white font-medium hover:bg-amber-600 transition-all"
                 >
                   Try It Free
                 </Link>
@@ -241,8 +241,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Intake */}
             <div className="p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-800">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-6">
-                <span className="text-blue-600 dark:text-blue-400 font-bold text-lg">1</span>
+              <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-6">
+                <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">1</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                 Submit Claim
@@ -254,8 +254,8 @@ export default function LandingPage() {
 
             {/* Processing */}
             <div className="p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-800">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center mb-6">
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">2</span>
+              <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center mb-6">
+                <span className="text-slate-700 dark:text-slate-300 font-bold text-lg">2</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                 AI Analysis
@@ -267,8 +267,8 @@ export default function LandingPage() {
 
             {/* Settlement */}
             <div className="p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-800">
-              <div className="w-12 h-12 rounded-xl bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center mb-6">
-                <span className="text-violet-600 dark:text-violet-400 font-bold text-lg">3</span>
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-6">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">3</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                 Fast Settlement
@@ -286,19 +286,19 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">70%</div>
+              <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">70%</div>
               <div className="mt-2 text-gray-600 dark:text-gray-400">Faster Processing</div>
             </div>
             <div>
-              <div className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">84%</div>
+              <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">84%</div>
               <div className="mt-2 text-gray-600 dark:text-gray-400">Cost Reduction</div>
             </div>
             <div>
-              <div className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">50</div>
+              <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">50</div>
               <div className="mt-2 text-gray-600 dark:text-gray-400">State Compliant</div>
             </div>
             <div>
-              <div className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">80%+</div>
+              <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">80%+</div>
               <div className="mt-2 text-gray-600 dark:text-gray-400">Auto-Approval Rate</div>
             </div>
           </div>
@@ -308,8 +308,8 @@ export default function LandingPage() {
       {/* Testimonial */}
       <section className="py-20 bg-white dark:bg-gray-950">
         <div className="max-w-4xl mx-auto px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-8 md:p-12 text-white text-center">
-            <svg className="w-12 h-12 mx-auto mb-6 opacity-50" fill="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 md:p-12 text-white text-center">
+            <svg className="w-12 h-12 mx-auto mb-6 text-amber-500 opacity-80" fill="currentColor" viewBox="0 0 24 24">
               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
             </svg>
             <blockquote className="text-xl md:text-2xl font-light leading-relaxed mb-6">
@@ -317,8 +317,8 @@ export default function LandingPage() {
               The fraud detection alone has saved us millions.&rdquo;
             </blockquote>
             <div>
-              <div className="font-semibold">VP of Claims Operations</div>
-              <div className="text-blue-200">Regional Insurance Carrier</div>
+              <div className="font-semibold text-amber-400">VP of Claims Operations</div>
+              <div className="text-slate-400">Regional Insurance Carrier</div>
             </div>
           </div>
         </div>
@@ -336,13 +336,13 @@ export default function LandingPage() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/sign-up"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium text-lg hover:bg-slate-800 dark:hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               Start Free Trial
             </Link>
             <Link
               href="/contact"
-              className="w-full sm:w-auto inline-flex px-8 py-4 rounded-xl bg-blue-600 text-white font-medium text-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="w-full sm:w-auto inline-flex px-8 py-4 rounded-xl bg-amber-500 text-white font-medium text-lg hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               Book a Demo
             </Link>
@@ -384,9 +384,14 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              &copy; {new Date().getFullYear()} ClaimAgent. All rights reserved.
-            </span>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                &copy; {new Date().getFullYear()} ClaimAgent. All rights reserved.
+              </span>
+              <span className="text-sm text-gray-400 dark:text-gray-500">
+                Built with Claude by Anthropic
+              </span>
+            </div>
             <div className="flex items-center space-x-4">
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg>

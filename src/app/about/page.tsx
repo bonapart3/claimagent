@@ -79,19 +79,19 @@ export default function AboutPage() {
                 payment. Adjusters empowered to handle complex cases that need human judgment.
               </p>
             </div>
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-8 text-white">
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 text-white">
               <div className="space-y-6">
                 <div>
                   <div className="text-4xl font-bold">70%</div>
-                  <div className="text-blue-100">Faster claim resolution</div>
+                  <div className="text-amber-200">Faster claim resolution</div>
                 </div>
                 <div>
                   <div className="text-4xl font-bold">84%</div>
-                  <div className="text-blue-100">Reduction in processing costs</div>
+                  <div className="text-amber-200">Reduction in processing costs</div>
                 </div>
                 <div>
                   <div className="text-4xl font-bold">50</div>
-                  <div className="text-blue-100">States with full compliance</div>
+                  <div className="text-amber-200">States with full compliance</div>
                 </div>
               </div>
             </div>
@@ -107,8 +107,8 @@ export default function AboutPage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-amber-500 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
@@ -155,7 +155,7 @@ export default function AboutPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/contact"
-              className="px-8 py-4 rounded-xl bg-blue-600 text-white font-medium text-lg hover:bg-blue-700 transition-all"
+              className="px-8 py-4 rounded-xl bg-amber-500 text-white font-medium text-lg hover:bg-amber-600 transition-all"
             >
               Book a Demo
             </Link>
