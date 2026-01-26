@@ -30,14 +30,17 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <head>
           <link rel="icon" href="/logo.jpg" type="image/jpeg" />
-          <meta name="theme-color" content="#2563eb" />
+          {/* theme-color is supported by Chrome, Edge, Safari; gracefully ignored by Firefox/Opera */}
+          {/* eslint-disable-next-line compat-api/html */}
+          <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+          {/* eslint-disable-next-line compat-api/html */}
+          <meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: dark)" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
         </head>
         <body
           className="antialiased bg-white dark:bg-gray-950"
-          style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
         >
           <div className="min-h-screen flex flex-col">
             {children}

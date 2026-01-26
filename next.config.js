@@ -61,14 +61,15 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: [
                             "default-src 'self'",
-                            "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+                            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.accounts.dev https://*.clerk.com",
                             "style-src 'self' 'unsafe-inline'",
-                            "img-src 'self' data: blob: https:",
+                            "img-src 'self' data: blob: https: https://img.clerk.com",
                             "font-src 'self' data:",
-                            "connect-src 'self' https://api.openai.com https://*.claimagent.io",
+                            "connect-src 'self' https://api.openai.com https://*.claimagent.io https://*.clerk.accounts.dev https://*.clerk.com",
+                            "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com",
                             "frame-ancestors 'self'",
                             "base-uri 'self'",
-                            "form-action 'self'"
+                            "form-action 'self' https://*.clerk.accounts.dev https://*.clerk.com"
                         ].join('; ')
                     }
                 ],
@@ -159,8 +160,7 @@ const nextConfig = {
     compress: true,
     productionBrowserSourceMaps: false,
 
-    // Output Configuration
-    output: 'standalone',
+    // Output Configuration (removed 'standalone' for Vercel compatibility)
 
     // TypeScript Configuration
     typescript: {
