@@ -146,7 +146,7 @@ export default function PricingPage() {
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start">
                       <svg
-                        className={`w-5 h-5 mr-3 flex-shrink-0 ${tier.highlighted ? 'text-slate-400' : 'text-amber-500 dark:text-amber-400'}`}
+                        className={`w-5 h-5 mr-3 flex-shrink-0 ${tier.highlighted ? 'text-amber-300' : 'text-amber-500 dark:text-amber-400'}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"

@@ -254,8 +254,8 @@ export default function LandingPage() {
 
             {/* Processing */}
             <div className="p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-gray-800">
-              <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center mb-6">
-                <span className="text-slate-700 dark:text-slate-300 font-bold text-lg">2</span>
+              <div className="w-12 h-12 rounded-xl bg-slate-800 dark:bg-slate-700 flex items-center justify-center mb-6">
+                <span className="text-white font-bold text-lg">2</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                 AI Analysis
