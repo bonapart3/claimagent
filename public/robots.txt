@@ -1,0 +1,24 @@
+# ClaimAgent Robots.txt
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://www.claimagent.io/sitemap.xml
+
+# Disallow admin/auth paths from indexing
+Disallow: /dashboard
+Disallow: /claims
+Disallow: /api/
+Disallow: /sign-in
+Disallow: /sign-up
+
+# Allow marketing pages
+Allow: /about
+Allow: /pricing
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /states/
+
+# Crawl-delay for politeness
+Crawl-delay: 1

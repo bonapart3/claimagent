@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
+import { OrganizationJsonLd, SoftwareApplicationJsonLd } from '@/components/seo/JsonLd';
 import './globals.css';
 import { Toaster } from '@/components/ui/Toaster';
 
@@ -57,6 +58,8 @@ export default function RootLayout({
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+          <OrganizationJsonLd />
+          <SoftwareApplicationJsonLd />
         </head>
         <body
           className="antialiased bg-white dark:bg-gray-950"
