@@ -20,6 +20,24 @@ export const metadata: Metadata = {
   description: 'Autonomous auto insurance claims with 50-state compliance, fraud detection, and automated decision routing.',
   keywords: 'insurance claims, auto claims, AI claims processing, fraud detection, claims automation',
   authors: [{ name: 'ClaimAgent Team' }],
+  metadataBase: new URL('https://www.claimagent.io'),
+  openGraph: {
+    title: 'ClaimAgent - AI-Powered Claims Processing',
+    description: 'Autonomous auto insurance claims with 50-state compliance, fraud detection, and automated decision routing.',
+    url: 'https://www.claimagent.io',
+    siteName: 'ClaimAgent',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ClaimAgent - AI-Powered Claims Processing',
+    description: 'Autonomous auto insurance claims with 50-state compliance, fraud detection, and automated decision routing.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
