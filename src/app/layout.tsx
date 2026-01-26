@@ -6,8 +6,7 @@ import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { Toaster } from '@/components/ui/Toaster';
 
-// Force dynamic rendering for all pages
-export const dynamic = 'force-dynamic';
+// Removed force-dynamic - let pages decide their own rendering strategy
 
 export const viewport: Viewport = {
   width: 'device-width',

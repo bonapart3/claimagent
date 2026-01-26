@@ -1,11 +1,11 @@
 // src/app/page.tsx
-// ClaimAgent landing page
+// ClaimAgent landing page - static for performance
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
 
 // Carrier logos placeholder - these would be real logos in production
@@ -18,12 +18,16 @@ const carriers = [
 ];
 
 export default function LandingPage() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  if (userId) {
-    redirect('/dashboard');
-  }
+  // Client-side redirect for authenticated users
+  useEffect(() => {
+    if (isLoaded && userId) {
+      router.push('/dashboard');
+    }
+  }, [isLoaded, userId, router]);
 
   return (
     <div className="min-h-screen">

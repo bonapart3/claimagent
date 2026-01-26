@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 
+// Static page for performance
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
+
 export const metadata = {
   title: 'Pricing - ClaimAgent',
   description: 'Simple, transparent pricing for insurance carriers of all sizes.',

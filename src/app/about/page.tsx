@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 
+// Static page for performance
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
+
 export const metadata = {
   title: 'About - ClaimAgent',
   description: 'Learn about ClaimAgent and our mission to transform insurance claims processing with AI.',

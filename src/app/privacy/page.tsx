@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 
+// Static page for performance
+export const dynamic = 'force-static';
+export const revalidate = 86400; // Revalidate daily
+
 export const metadata = {
   title: 'Privacy Policy - ClaimAgent',
   description: 'ClaimAgent Privacy Policy - How we collect, use, and protect your data.',

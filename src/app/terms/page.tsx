@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 
+// Static page for performance
+export const dynamic = 'force-static';
+export const revalidate = 86400; // Revalidate daily
+
 export const metadata = {
   title: 'Terms of Service - ClaimAgent',
   description: 'ClaimAgent Terms of Service - Terms and conditions for using our platform.',
