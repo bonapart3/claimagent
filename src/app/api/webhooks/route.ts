@@ -110,12 +110,8 @@ function validateSignature(
     const secret = source ? WEBHOOK_SECRETS[source] : null;
 
     // If no secret configured for this source, reject
-    // In dev/demo mode, allow if WEBHOOK_ALLOW_UNSIGNED is set
+    // SECURITY: Never allow unsigned webhooks in production
     if (!secret) {
-        if (process.env.WEBHOOK_ALLOW_UNSIGNED === 'true') {
-            console.warn(`[WEBHOOK] Allowing unsigned webhook from ${source} - DEMO MODE ONLY`);
-            return true;
-        }
         console.error(`[WEBHOOK] No secret configured for source: ${source}`);
         return false;
     }
