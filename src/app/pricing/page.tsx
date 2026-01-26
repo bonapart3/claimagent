@@ -14,7 +14,7 @@ const tiers = [
   {
     name: 'Starter',
     description: 'For small carriers getting started with automation',
-    price: '2,500',
+    price: '299',
     period: '/month',
     features: [
       'Up to 500 claims/month',
@@ -31,7 +31,7 @@ const tiers = [
   {
     name: 'Professional',
     description: 'For growing carriers scaling their operations',
-    price: '7,500',
+    price: '999',
     period: '/month',
     features: [
       'Up to 2,500 claims/month',

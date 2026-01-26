@@ -38,8 +38,8 @@ export function SoftwareApplicationJsonLd() {
     description: 'Autonomous auto insurance claims processing platform. AI-powered damage assessment, fraud detection, and 50-state regulatory compliance.',
     offers: {
       '@type': 'AggregateOffer',
-      lowPrice: '2500',
-      highPrice: '7500',
+      lowPrice: '299',
+      highPrice: '999',
       priceCurrency: 'USD',
       offerCount: '3',
     },
