@@ -1,7 +1,7 @@
 [build]
 builder = "RAILPACK"
 buildCommand = "npx prisma generate && npm run build"
-watchPatterns = ["/src/**"]
+watchPatterns = ["/src/**", "/package.json", "/prisma/**", "/railway.toml"]
 
 [deploy]
 runtime = "V2"
