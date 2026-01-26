@@ -41,6 +41,7 @@ export default function RootLayout({
         </head>
         <body
           className="antialiased bg-white dark:bg-gray-950"
+          style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif' }}
         >
           <div className="min-h-screen flex flex-col">
             {children}
