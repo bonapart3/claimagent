@@ -1,6 +1,8 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { Toaster } from '@/components/ui/Toaster';
 
@@ -47,6 +49,8 @@ export default function RootLayout({
             {children}
           </div>
           <Toaster />
+          <SpeedInsights />
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
