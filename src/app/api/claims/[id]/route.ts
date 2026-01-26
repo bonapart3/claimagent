@@ -4,12 +4,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/utils/database';
 import { auditLog } from '@/lib/utils/auditLogger';
+import { validateSession } from '@/lib/utils/validation';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         const claimId = params.id;
 
         // Try to find by claim number or ID
@@ -170,6 +180,23 @@ export async function PATCH(
     { params }: { params: { id: string } }
 ) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
+        // Require write permission for updates
+        if (!session.canWrite) {
+            return NextResponse.json(
+                { success: false, error: 'Insufficient permissions' },
+                { status: 403 }
+            );
+        }
+
         const claimId = params.id;
         const body = await request.json();
 
@@ -238,6 +265,23 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
+        // Require write permission for deletion
+        if (!session.canWrite) {
+            return NextResponse.json(
+                { success: false, error: 'Insufficient permissions' },
+                { status: 403 }
+            );
+        }
+
         const claimId = params.id;
 
         // Find existing claim

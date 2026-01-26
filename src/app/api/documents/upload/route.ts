@@ -6,9 +6,19 @@ import { prisma } from '@/lib/prisma';
 import { auditLog } from '@/lib/utils/auditLogger';
 import { validateFormData, performSecurityChecks } from '@/lib/utils/requestValidator';
 import { DocumentUploadMetadataSchema } from '@/lib/schemas/api';
+import { validateSession } from '@/lib/utils/validation';
 
 export async function POST(request: NextRequest) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         // Validate form data with security checks
         const formValidation = await validateFormData(request, {
             maxFileSize: 10 * 1024 * 1024, // 10MB
@@ -172,6 +182,15 @@ async function hashBuffer(buffer: ArrayBuffer): Promise<string> {
 // GET - List documents for a claim
 export async function GET(request: NextRequest) {
     try {
+        // Validate session - SECURITY FIX
+        const session = await validateSession(request);
+        if (!session) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         const { searchParams } = new URL(request.url);
         const claimId = searchParams.get('claimId');
 
