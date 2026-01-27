@@ -7,7 +7,7 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { FormInput } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
 
 function LoginForm() {
@@ -56,7 +56,7 @@ function LoginForm() {
           </Alert>
         )}
 
-        <Input
+        <FormInput
           label="Email Address"
           type="email"
           value={email}
@@ -66,7 +66,7 @@ function LoginForm() {
           autoComplete="email"
         />
 
-        <Input
+        <FormInput
           label="Password"
           type="password"
           value={password}

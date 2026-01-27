@@ -1,86 +1,84 @@
-// src/components/ui/Badge.tsx
-// Badge Component
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { ReactNode } from 'react';
+import { cn } from "@/lib/utils/cn"
 
-type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
+const badgeVariants = cva(
+  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default:
+          "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive:
+          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
+        outline: "text-foreground",
+        success:
+          "border-transparent bg-success/10 text-success hover:bg-success/20",
+        warning:
+          "border-transparent bg-warning/10 text-warning hover:bg-warning/20",
+        info:
+          "border-transparent bg-primary/10 text-primary hover:bg-primary/20",
+        error:
+          "border-transparent bg-destructive/10 text-destructive hover:bg-destructive/20",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
 
-interface BadgeProps {
-    children: ReactNode;
-    variant?: BadgeVariant;
-    size?: 'sm' | 'md' | 'lg';
-    className?: string;
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function Badge({ className, variant, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  )
 }
 
-const variantStyles: Record<BadgeVariant, string> = {
-    default: 'bg-gray-100 text-gray-800 border-gray-200',
-    success: 'bg-green-100 text-green-800 border-green-200',
-    warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    error: 'bg-red-100 text-red-800 border-red-200',
-    info: 'bg-blue-100 text-blue-800 border-blue-200',
-};
-
-const sizeStyles = {
-    sm: 'text-xs px-1.5 py-0.5',
-    md: 'text-xs px-2 py-1',
-    lg: 'text-sm px-2.5 py-1',
-};
-
-export function Badge({
-    children,
-    variant = 'default',
-    size = 'md',
-    className = '',
-}: BadgeProps) {
-    return (
-        <span
-            className={`
-        inline-flex items-center font-medium rounded-full border
-        ${variantStyles[variant]}
-        ${sizeStyles[size]}
-        ${className}
-      `}
-        >
-            {children}
-        </span>
-    );
-}
-
-// Status-specific badge component
+// Status-specific badge component for claims
 type ClaimStatus =
-    | 'SUBMITTED'
-    | 'UNDER_REVIEW'
-    | 'INVESTIGATING'
-    | 'APPROVED'
-    | 'REJECTED'
-    | 'PAID'
-    | 'FLAGGED_FRAUD'
-    | 'CLOSED';
+  | 'SUBMITTED'
+  | 'UNDER_REVIEW'
+  | 'INVESTIGATING'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'PAID'
+  | 'FLAGGED_FRAUD'
+  | 'CLOSED';
+
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info' | 'error';
 
 const statusVariants: Record<ClaimStatus, BadgeVariant> = {
-    SUBMITTED: 'info',
-    UNDER_REVIEW: 'warning',
-    INVESTIGATING: 'warning',
-    APPROVED: 'success',
-    REJECTED: 'error',
-    PAID: 'success',
-    FLAGGED_FRAUD: 'error',
-    CLOSED: 'default',
+  SUBMITTED: 'info',
+  UNDER_REVIEW: 'warning',
+  INVESTIGATING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'error',
+  PAID: 'success',
+  FLAGGED_FRAUD: 'error',
+  CLOSED: 'secondary',
 };
 
 interface StatusBadgeProps {
-    status: ClaimStatus;
-    size?: 'sm' | 'md' | 'lg';
+  status: ClaimStatus;
+  className?: string;
 }
 
-export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
-    const variant = statusVariants[status] || 'default';
-    const displayStatus = status.replace(/_/g, ' ');
+function StatusBadge({ status, className }: StatusBadgeProps) {
+  const variant = statusVariants[status] || 'default';
+  const displayStatus = status.replace(/_/g, ' ');
 
-    return (
-        <Badge variant={variant} size={size}>
-            {displayStatus}
-        </Badge>
-    );
+  return (
+    <Badge variant={variant} className={className}>
+      {displayStatus}
+    </Badge>
+  );
 }
 
+export { Badge, badgeVariants, StatusBadge }

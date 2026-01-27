@@ -1,95 +1,99 @@
-// src/components/ui/Alert.tsx
-// Alert Component
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { ReactNode } from 'react';
+import { cn } from "@/lib/utils/cn"
 
-type AlertVariant = 'info' | 'success' | 'warning' | 'error';
+const alertVariants = cva(
+  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
+  {
+    variants: {
+      variant: {
+        default: "bg-background text-foreground",
+        destructive:
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+        success:
+          "border-success/50 bg-success/10 text-success dark:border-success [&>svg]:text-success",
+        warning:
+          "border-warning/50 bg-warning/10 text-warning dark:border-warning [&>svg]:text-warning",
+        info:
+          "border-primary/50 bg-primary/10 text-primary dark:border-primary [&>svg]:text-primary",
+        error:
+          "border-destructive/50 bg-destructive/10 text-destructive dark:border-destructive [&>svg]:text-destructive",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
 
-interface AlertProps {
-    variant?: AlertVariant;
-    title?: string;
-    children: ReactNode;
-    onClose?: () => void;
-    className?: string;
+interface AlertProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof alertVariants> {
+  onClose?: () => void;
 }
 
-const variantStyles: Record<
-    AlertVariant,
-    { container: string; icon: string; title: string }
-> = {
-    info: {
-        container: 'bg-blue-50 border-blue-200 text-blue-800',
-        icon: 'ℹ️',
-        title: 'text-blue-900',
-    },
-    success: {
-        container: 'bg-green-50 border-green-200 text-green-800',
-        icon: '✅',
-        title: 'text-green-900',
-    },
-    warning: {
-        container: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-        icon: '⚠️',
-        title: 'text-yellow-900',
-    },
-    error: {
-        container: 'bg-red-50 border-red-200 text-red-800',
-        icon: '❌',
-        title: 'text-red-900',
-    },
-};
-
-export function Alert({
-    variant = 'info',
-    title,
-    children,
-    onClose,
-    className = '',
-}: AlertProps) {
-    const styles = variantStyles[variant];
-
-    return (
-        <div
-            className={`relative rounded-lg border p-4 ${styles.container} ${className}`}
-            role="alert"
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ className, variant, onClose, children, ...props }, ref) => (
+    <div
+      ref={ref}
+      role="alert"
+      className={cn(alertVariants({ variant }), "relative", className)}
+      {...props}
+    >
+      {children}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute right-2 top-2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          aria-label="Dismiss"
         >
-            <div className="flex gap-3">
-                <span className="text-lg flex-shrink-0">{styles.icon}</span>
-                <div className="flex-1">
-                    {title && (
-                        <h3 className={`font-medium mb-1 ${styles.title}`}>{title}</h3>
-                    )}
-                    <div className="text-sm">{children}</div>
-                </div>
-                {onClose && (
-                    <button
-                        onClick={onClose}
-                        className="flex-shrink-0 text-current opacity-70 hover:opacity-100 transition-opacity"
-                        aria-label="Dismiss"
-                    >
-                        ✕
-                    </button>
-                )}
-            </div>
-        </div>
-    );
-}
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+)
+Alert.displayName = "Alert"
 
-// Inline alert for form fields
+const AlertTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+AlertTitle.displayName = "AlertTitle"
+
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props}
+  />
+))
+AlertDescription.displayName = "AlertDescription"
+
+// Inline alert for form fields (preserved from original)
 interface InlineAlertProps {
-    variant?: 'error' | 'warning';
-    children: ReactNode;
+  variant?: 'error' | 'warning';
+  children: React.ReactNode;
 }
 
-export function InlineAlert({ variant = 'error', children }: InlineAlertProps) {
-    const color = variant === 'error' ? 'text-red-600' : 'text-yellow-600';
-    const icon = variant === 'error' ? '⚠️' : '⚡';
+function InlineAlert({ variant = 'error', children }: InlineAlertProps) {
+  const color = variant === 'error' ? 'text-destructive' : 'text-warning';
 
-    return (
-        <p className={`flex items-center gap-1 text-sm mt-1 ${color}`}>
-            <span className="text-xs">{icon}</span>
-            {children}
-        </p>
-    );
+  return (
+    <p className={cn("flex items-center gap-1 text-sm mt-1", color)}>
+      {children}
+    </p>
+  );
 }
 
+export { Alert, AlertTitle, AlertDescription, InlineAlert }

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: ["class"],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -8,7 +9,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // shadcn/ui CSS variable colors
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+          // Keep existing scales for backwards compatibility
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
@@ -21,7 +31,34 @@ module.exports = {
           900: '#1e3a8a',
           950: '#172554',
         },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        // Custom insurance domain colors
         success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
           50: '#f0fdf4',
           100: '#dcfce7',
           200: '#bbf7d0',
@@ -34,6 +71,8 @@ module.exports = {
           900: '#14532d',
         },
         warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
           50: '#fefce8',
           100: '#fef9c3',
           200: '#fef08a',
@@ -72,6 +111,9 @@ module.exports = {
         '128': '32rem',
       },
       borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
         '4xl': '2rem',
       },
       boxShadow: {
@@ -82,6 +124,18 @@ module.exports = {
         'spin-slow': 'spin 3s linear infinite',
         'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce-slow': 'bounce 2s infinite',
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
       },
       transitionDuration: {
         '400': '400ms',
@@ -108,8 +162,6 @@ module.exports = {
     },
   },
   plugins: [
-    // Add plugins here if needed
-    // require('@tailwindcss/forms'),
-    // require('@tailwindcss/typography'),
+    require("tailwindcss-animate"),
   ],
 };
