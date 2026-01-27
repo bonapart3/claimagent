@@ -100,7 +100,7 @@ WHAT HAPPENS NEXT:
 NEED TO REACH US?
 - Online: claimagent.com/claims/${claimData.claimNumber}
 - Phone: 1-800-CLAIMS-1
-- Email: claims@claimagent.com
+- Email: tyler@claimagent.io
 
 Please keep your claim number handy for all future correspondence.
 
@@ -187,7 +187,7 @@ HOW TO SUBMIT:
 3. Select and upload the requested files
 
 You can also:
-- Email documents to: documents@claimagent.com
+- Email documents to: tyler@claimagent.io
 - Fax to: 1-800-FAX-DOCS
 
 Please reference your claim number (${claimData.claimNumber}) on all documents.
@@ -333,7 +333,7 @@ We understand this may be frustrating, and we apologize for any inconvenience. W
 
 If you have questions or concerns, please don't hesitate to reach out:
 - Phone: 1-800-CLAIMS-1
-- Email: claims@claimagent.com
+- Email: tyler@claimagent.io
 
 We appreciate your patience and understanding.
 

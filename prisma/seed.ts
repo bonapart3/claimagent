@@ -10,10 +10,10 @@ async function main() {
 
     // Create demo users
     const adminUser = await prisma.user.upsert({
-        where: { email: 'admin@claimagent.com' },
+        where: { email: 'tyler@claimagent.io' },
         update: {},
         create: {
-            email: 'admin@claimagent.com',
+            email: 'tyler@claimagent.io',
             firstName: 'Admin',
             lastName: 'User',
             role: 'ADMIN',
@@ -23,10 +23,10 @@ async function main() {
     });
 
     const supervisorUser = await prisma.user.upsert({
-        where: { email: 'supervisor@claimagent.com' },
+        where: { email: 'tyler@claimagent.io' },
         update: {},
         create: {
-            email: 'supervisor@claimagent.com',
+            email: 'tyler@claimagent.io',
             firstName: 'Sarah',
             lastName: 'Supervisor',
             role: 'SUPERVISOR',
@@ -36,10 +36,10 @@ async function main() {
     });
 
     const adjusterUser = await prisma.user.upsert({
-        where: { email: 'adjuster@claimagent.com' },
+        where: { email: 'tyler@claimagent.io' },
         update: {},
         create: {
-            email: 'adjuster@claimagent.com',
+            email: 'tyler@claimagent.io',
             firstName: 'John',
             lastName: 'Adjuster',
             role: 'ADJUSTER',

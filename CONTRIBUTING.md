@@ -268,7 +268,7 @@ Update README.md when:
 ## Questions?
 
 - Open a [Discussion](https://github.com/bonapart3/claimagent/discussions)
-- Email: dev@claimagent.io
+- Email: tyler@claimagent.io
 
 ---
 
