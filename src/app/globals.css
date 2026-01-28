@@ -285,3 +285,46 @@
     @apply shadow-none border-2;
   }
 }
+
+/* Clerk Component Overrides - Ensure proper contrast */
+.cl-formFieldLabel,
+.cl-formFieldHintText,
+.cl-footerActionText,
+.cl-headerSubtitle,
+.cl-socialButtonsBlockButtonText,
+.cl-dividerText,
+.cl-identityPreviewText,
+.cl-formFieldInputShowPasswordButton,
+.cl-otpCodeFieldInput {
+  color: #374151 !important; /* gray-700 */
+}
+
+.cl-formFieldInput,
+.cl-phoneNumberInput {
+  color: #111827 !important; /* gray-900 */
+  background-color: #ffffff !important;
+}
+
+.cl-formFieldInput::placeholder {
+  color: #9ca3af !important; /* gray-400 */
+}
+
+.dark .cl-formFieldLabel,
+.dark .cl-formFieldHintText,
+.dark .cl-footerActionText,
+.dark .cl-headerSubtitle,
+.dark .cl-socialButtonsBlockButtonText,
+.dark .cl-dividerText,
+.dark .cl-identityPreviewText {
+  color: #d1d5db !important; /* gray-300 */
+}
+
+.dark .cl-formFieldInput,
+.dark .cl-phoneNumberInput {
+  color: #f9fafb !important; /* gray-50 */
+  background-color: #1f2937 !important; /* gray-800 */
+}
+
+.dark .cl-formFieldInput::placeholder {
+  color: #6b7280 !important; /* gray-500 */
+}
