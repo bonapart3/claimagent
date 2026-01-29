@@ -3,6 +3,81 @@
 
 import { prisma } from '@/lib/utils/database';
 import { Policy } from '@/lib/types/policy';
+import { CoverageVerification } from '@/lib/types/claim';
+
+export interface PolicyValidationResult {
+    isValid: boolean;
+    policyStatus: string;
+    effectiveDate?: Date;
+    expirationDate?: Date;
+    issues: string[];
+}
+
+/**
+ * Policy Validation Service class for agent usage
+ */
+export class PolicyValidationService {
+    async validatePolicy(policyNumber: string, lossDate: Date): Promise<PolicyValidationResult> {
+        const policy = await validatePolicyAPI(policyNumber);
+
+        if (!policy) {
+            return {
+                isValid: false,
+                policyStatus: 'NOT_FOUND',
+                issues: ['Policy not found']
+            };
+        }
+
+        const isActive = isPolicyActiveForDate(policy, lossDate);
+
+        return {
+            isValid: isActive,
+            policyStatus: policy.status,
+            effectiveDate: policy.effectiveDate,
+            expirationDate: policy.expirationDate,
+            issues: isActive ? [] : ['Policy not active for loss date']
+        };
+    }
+
+    async verifyCoverage(policy: Policy, claimType: string, lossDate: Date): Promise<CoverageVerification> {
+        const coverages = getAvailableCoverages(policy, claimType);
+        const hasApplicable = coverages.length > 0;
+
+        return {
+            policyId: policy.id,
+            isValid: hasApplicable,
+            coverageType: claimType,
+            coverageTypes: coverages.map(c => c.type),
+            hasApplicableCoverage: hasApplicable,
+            issues: hasApplicable ? [] : ['No applicable coverage found']
+        };
+    }
+
+    async getPolicyByNumber(policyNumber: string): Promise<Policy | null> {
+        return validatePolicyAPI(policyNumber);
+    }
+
+    async isVehicleOnPolicy(policy: Policy, vin: string): Promise<boolean> {
+        return policy.vehicles.some(v => v.vin === vin);
+    }
+
+    async isDriverOnPolicy(policy: Policy, licenseNumber: string): Promise<boolean> {
+        // Placeholder - would check driver list on policy
+        return true;
+    }
+
+    async isDriverExcluded(policy: Policy, licenseNumber: string): Promise<boolean> {
+        // Placeholder - would check excluded driver list
+        return false;
+    }
+
+    async getRecentPolicyChanges(policyNumber: string, days: number = 30): Promise<any[]> {
+        // Placeholder - would return recent policy changes
+        return [];
+    }
+}
+
+export const policyValidationService = new PolicyValidationService();
 
 /**
  * Validate and retrieve policy by policy number
@@ -22,14 +97,15 @@ export async function validatePolicyAPI(policyNumber: string): Promise<Policy | 
         }
 
         // Transform database model to Policy interface
+        const policyAny = policy as any;
         return {
             id: policy.id,
             policyNumber: policy.policyNumber,
-            namedInsured: policy.policyholderName,
+            namedInsured: policyAny.policyholderName || `${policyAny.holderFirstName} ${policyAny.holderLastName}` || 'Unknown',
             effectiveDate: policy.effectiveDate,
             expirationDate: policy.expirationDate,
             status: policy.status as Policy['status'],
-            state: policy.state || 'UNKNOWN',
+            state: policyAny.state || 'UNKNOWN',
             vehicles: policy.vehicles?.map((v: any) => ({
                 id: v.id,
                 vin: v.vin,
@@ -37,7 +113,7 @@ export async function validatePolicyAPI(policyNumber: string): Promise<Policy | 
                 make: v.make,
                 model: v.model,
                 licensePlate: v.licensePlate,
-                state: v.state || policy.state,
+                state: v.state || policyAny.state || 'UNKNOWN',
                 garageZipCode: v.garageZipCode || '',
                 usage: v.usage || 'personal',
             })) || [],
@@ -56,6 +132,7 @@ export async function validatePolicyAPI(policyNumber: string): Promise<Policy | 
                 collision: 500,
                 comprehensive: 250,
             },
+            exclusions: [],
             createdAt: policy.createdAt,
             updatedAt: policy.updatedAt,
         };

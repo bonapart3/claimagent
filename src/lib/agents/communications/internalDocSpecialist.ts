@@ -14,7 +14,7 @@ interface InternalDocument {
 }
 
 export class InternalDocSpecialist {
-    private readonly agentId: AgentRole = 'INTERNAL_DOC_SPECIALIST';
+    private readonly agentId = AgentRole.INTERNAL_DOC_SPECIALIST;
 
     async generateDocument(
         claimData: ClaimData,

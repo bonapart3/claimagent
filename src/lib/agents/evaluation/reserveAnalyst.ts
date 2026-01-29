@@ -1,10 +1,13 @@
 // src/lib/agents/evaluation/reserveAnalyst.ts
 // Agent D1: Reserve Analyst - Calculates appropriate claim reserves
 
-import { ClaimData, DamageAssessment } from '@/lib/types/claim';
-import { AgentResult, AgentRole, EscalationTrigger, ReserveAnalysis } from '@/lib/types/agent';
+import { ClaimData, DamageItem } from '@/lib/types/claim';
+import { AgentResult, AgentRole, SimpleEscalation, ReserveAnalysis, ReserveBreakdown } from '@/lib/types/agent';
 import { auditLog } from '@/lib/utils/auditLogger';
 import { FINANCIAL_THRESHOLDS } from '@/lib/constants/thresholds';
+
+// Local type alias for damage assessment
+type DamageAssessment = DamageItem;
 
 interface ReserveFactors {
     vehicleDamage: number;
@@ -17,21 +20,14 @@ interface ReserveFactors {
     subrogation: number;
 }
 
-interface ReserveBreakdown {
-    category: string;
-    estimatedMin: number;
-    estimatedMax: number;
-    recommended: number;
-    confidence: number;
-    factors: string[];
-}
+// ReserveBreakdown is imported from agent.ts
 
 export class ReserveAnalyst {
-    private readonly agentId: AgentRole = 'RESERVE_ANALYST';
+    private readonly agentId = AgentRole.RESERVE_ANALYST;
 
     async analyze(claimData: ClaimData): Promise<AgentResult> {
         const startTime = Date.now();
-        const escalations: EscalationTrigger[] = [];
+        const escalations: SimpleEscalation[] = [];
 
         try {
             // Step 1: Calculate damage reserves
@@ -57,11 +53,11 @@ export class ReserveAnalyst {
             );
 
             // Step 6: Determine if escalation needed
-            if (totalReserve.recommended > FINANCIAL_THRESHOLDS.RESERVE_AUTHORITY.ADJUSTER) {
+            if (totalReserve.recommended > FINANCIAL_THRESHOLDS.SETTLEMENT_AUTHORITY.ADJUSTER) {
                 escalations.push({
                     type: 'HIGH_RESERVE',
                     reason: `Reserve of $${totalReserve.recommended.toLocaleString()} exceeds adjuster authority`,
-                    severity: totalReserve.recommended > FINANCIAL_THRESHOLDS.RESERVE_AUTHORITY.SUPERVISOR
+                    severity: totalReserve.recommended > FINANCIAL_THRESHOLDS.SETTLEMENT_AUTHORITY.SUPERVISOR
                         ? 'HIGH'
                         : 'MEDIUM',
                 });
@@ -84,11 +80,14 @@ export class ReserveAnalyst {
             };
 
             // Log audit
+            const reserveAmount = typeof reserveAnalysis.totalReserve === 'number'
+                ? reserveAnalysis.totalReserve
+                : reserveAnalysis.totalReserve.recommended;
             await auditLog({
                 claimId: claimData.id,
                 action: 'RESERVE_ANALYSIS_COMPLETED',
                 agentId: this.agentId,
-                description: `Reserve analysis: $${reserveAnalysis.totalReserve.recommended.toLocaleString()}`,
+                description: `Reserve analysis: $${reserveAmount.toLocaleString()}`,
                 details: { reserve: reserveAnalysis },
             });
 

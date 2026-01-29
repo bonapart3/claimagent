@@ -1,7 +1,10 @@
 // src/lib/services/vehicleValuation.ts
 // Vehicle Valuation Service
 
-import { VehicleInfo } from '@/lib/types/claim';
+import { VehicleData } from '@/lib/types/claim';
+
+// Type alias for backward compatibility
+type VehicleInfo = VehicleData;
 
 interface ValuationResult {
   vehicleId: string;
@@ -110,12 +113,13 @@ export class VehicleValuationService {
       });
     }
 
-    // Apply optional equipment adjustments
-    if (vehicle.optionalEquipment && vehicle.optionalEquipment.length > 0) {
-      const equipmentValue = this.calculateEquipmentValue(vehicle.optionalEquipment);
+    // Apply optional equipment adjustments (if vehicle has optionalEquipment property)
+    const vehicleAny = vehicle as any;
+    if (vehicleAny.optionalEquipment && vehicleAny.optionalEquipment.length > 0) {
+      const equipmentValue = this.calculateEquipmentValue(vehicleAny.optionalEquipment);
       adjustments.push({
         type: 'EQUIPMENT',
-        description: `Optional equipment (${vehicle.optionalEquipment.length} items)`,
+        description: `Optional equipment (${vehicleAny.optionalEquipment.length} items)`,
         amount: equipmentValue,
       });
     }

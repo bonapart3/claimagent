@@ -1,8 +1,8 @@
 // src/lib/agents/investigation/vehicleInspector.ts
 // Agent B1: Vehicle Inspector - Analyzes vehicle damage from photos and estimates
 
-import { ClaimData, DamageAssessment, Vehicle } from '@/lib/types/claim';
-import { AgentResult, AgentRole, EscalationTrigger } from '@/lib/types/agent';
+import { ClaimData, DamageItem, Vehicle } from '@/lib/types/claim';
+import { AgentResult, AgentRole, SimpleEscalation } from '@/lib/types/agent';
 import { auditLog } from '@/lib/utils/auditLogger';
 import { TOTAL_LOSS_THRESHOLDS } from '@/lib/constants/thresholds';
 
@@ -10,7 +10,7 @@ interface VehicleInspectionResult {
     claimId: string;
     vehicleId: string;
     inspectionDate: string;
-    damages: DamageAssessment[];
+    damages: DamageItem[];
     totalDamageCost: number;
     marketValue: number;
     totalLossThreshold: number;
@@ -29,7 +29,7 @@ interface DamagePattern {
 }
 
 export class VehicleInspector {
-    private readonly agentId: AgentRole = 'VEHICLE_INSPECTOR';
+    private readonly agentId: AgentRole = AgentRole.VEHICLE_INSPECTOR;
 
     // Standard labor rates by region ($/hour)
     private readonly laborRates: Record<string, number> = {
@@ -43,7 +43,7 @@ export class VehicleInspector {
 
     async inspect(claimData: ClaimData): Promise<AgentResult> {
         const startTime = Date.now();
-        const escalations: EscalationTrigger[] = [];
+        const escalations: SimpleEscalation[] = [];
 
         try {
             if (!claimData.vehicle) {
@@ -135,17 +135,17 @@ export class VehicleInspector {
         }
     }
 
-    private async analyzeDamages(claimData: ClaimData): Promise<DamageAssessment[]> {
+    private async analyzeDamages(claimData: ClaimData): Promise<DamageItem[]> {
         // If damages already assessed, enhance them
         if (claimData.damages && claimData.damages.length > 0) {
-            return claimData.damages.map(d => this.enhanceDamageAssessment(d, claimData));
+            return claimData.damages.map(d => this.enhanceDamageItem(d, claimData));
         }
 
         // Otherwise, create initial assessment from description
-        return this.createDamageAssessmentFromDescription(claimData);
+        return this.createDamageItemFromDescription(claimData);
     }
 
-    private enhanceDamageAssessment(damage: DamageAssessment, claimData: ClaimData): DamageAssessment {
+    private enhanceDamageItem(damage: DamageItem, claimData: ClaimData): DamageItem {
         const region = this.getRegionFromState(claimData.lossState);
         const laborRate = this.laborRates[region] || this.laborRates.DEFAULT;
 
@@ -164,8 +164,8 @@ export class VehicleInspector {
         return damage;
     }
 
-    private createDamageAssessmentFromDescription(claimData: ClaimData): DamageAssessment[] {
-        const damages: DamageAssessment[] = [];
+    private createDamageItemFromDescription(claimData: ClaimData): DamageItem[] {
+        const damages: DamageItem[] = [];
         const description = claimData.lossDescription?.toLowerCase() || '';
 
         // Parse common damage keywords
@@ -263,7 +263,7 @@ export class VehicleInspector {
     }
 
     private analyzeDamagePattern(
-        damages: DamageAssessment[],
+        damages: DamageItem[],
         claimData: ClaimData
     ): DamagePattern {
         const inconsistencies: string[] = [];
@@ -341,7 +341,7 @@ export class VehicleInspector {
         return 'UNKNOWN';
     }
 
-    private calculateOverallSeverity(damages: DamageAssessment[]): 'MINOR' | 'MODERATE' | 'MAJOR' | 'SEVERE' {
+    private calculateOverallSeverity(damages: DamageItem[]): 'MINOR' | 'MODERATE' | 'MAJOR' | 'SEVERE' {
         if (damages.length === 0) return 'MINOR';
 
         const severityScores: Record<string, number> = {
@@ -361,7 +361,7 @@ export class VehicleInspector {
         return 'MINOR';
     }
 
-    private identifySafetyIssues(damages: DamageAssessment[]): string[] {
+    private identifySafetyIssues(damages: DamageItem[]): string[] {
         const issues: string[] = [];
 
         for (const damage of damages) {
@@ -390,7 +390,7 @@ export class VehicleInspector {
         return [...new Set(issues)]; // Remove duplicates
     }
 
-    private estimateSeverity(damage: DamageAssessment): string {
+    private estimateSeverity(damage: DamageItem): string {
         const cost = damage.estimatedCost || 0;
 
         if (cost < 500) return 'MINOR';
@@ -401,7 +401,7 @@ export class VehicleInspector {
 
     private determineRepairability(
         isTotalLoss: boolean,
-        damages: DamageAssessment[]
+        damages: DamageItem[]
     ): 'REPAIRABLE' | 'QUESTIONABLE' | 'TOTAL_LOSS' {
         if (isTotalLoss) return 'TOTAL_LOSS';
 
@@ -437,7 +437,7 @@ export class VehicleInspector {
         return state ? (regions[state] || 'DEFAULT') : 'DEFAULT';
     }
 
-    private calculateConfidence(damages: DamageAssessment[], claimData: ClaimData): number {
+    private calculateConfidence(damages: DamageItem[], claimData: ClaimData): number {
         let confidence = 0.6; // Base confidence
 
         // More damages = better understanding
@@ -458,7 +458,7 @@ export class VehicleInspector {
 
     private generateRecommendations(
         isTotalLoss: boolean,
-        damages: DamageAssessment[],
+        damages: DamageItem[],
         safetyIssues: string[]
     ): string[] {
         const recommendations: string[] = [];

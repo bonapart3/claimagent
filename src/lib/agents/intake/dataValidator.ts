@@ -2,7 +2,7 @@
 // Agent A2: Data Validator - Validates claim data completeness and accuracy
 
 import { ClaimData, ClaimType } from '@/lib/types/claim';
-import { AgentResult, AgentRole, EscalationTrigger, ValidationResult } from '@/lib/types/agent';
+import { AgentResult, AgentRole, SimpleEscalation, ValidationResult } from '@/lib/types/agent';
 import { auditLog } from '@/lib/utils/auditLogger';
 
 interface FieldValidation {
@@ -23,7 +23,7 @@ interface DataValidationResult {
 }
 
 export class DataValidator {
-    private readonly agentId: AgentRole = 'DATA_VALIDATOR';
+    private readonly agentId = AgentRole.DATA_VALIDATOR;
 
     private readonly requiredFields: Record<ClaimType, string[]> = {
         COLLISION: [
@@ -99,11 +99,42 @@ export class DataValidator {
             'vehicle.vin',
             'glassType',
         ],
+        PERSONAL_INJURY: [
+            'policyNumber',
+            'lossDate',
+            'injuryDescription',
+            'medicalProvider',
+        ],
+        PIP: [
+            'policyNumber',
+            'lossDate',
+            'injuryDescription',
+        ],
+        FIRE: [
+            'policyNumber',
+            'lossDate',
+            'lossLocation',
+            'vehicle.vin',
+        ],
+        ANIMAL: [
+            'policyNumber',
+            'lossDate',
+            'lossLocation',
+            'vehicle.vin',
+            'animalType',
+        ],
+        HIT_AND_RUN: [
+            'policyNumber',
+            'lossDate',
+            'lossLocation',
+            'vehicle.vin',
+            'policeReportNumber',
+        ],
     };
 
     async validate(claimData: ClaimData): Promise<AgentResult> {
         const startTime = Date.now();
-        const escalations: EscalationTrigger[] = [];
+        const escalations: SimpleEscalation[] = [];
 
         try {
             const validations: FieldValidation[] = [];
@@ -111,7 +142,8 @@ export class DataValidator {
             const warnings: string[] = [];
 
             // Get required fields for claim type
-            const requiredFields = this.requiredFields[claimData.claimType] || this.requiredFields.COLLISION;
+            const claimType = claimData.claimType as ClaimType;
+            const requiredFields = this.requiredFields[claimType] || this.requiredFields.COLLISION;
 
             // Validate required fields
             for (const field of requiredFields) {

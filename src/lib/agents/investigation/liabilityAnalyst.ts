@@ -143,10 +143,10 @@ export class LiabilityAnalyst {
         return {
             state,
             negligenceStandard: negligenceMap[state] || 'pure_comparative',
-            keyStatutes: stateRegs ? stateRegs.specificRequirements : ['State regulations not loaded - manual review required'],
+            keyStatutes: stateRegs?.specificRequirements || ['State regulations not loaded - manual review required'],
             relevantCaseLaw: [`${state} comparative negligence standard applies`, `Review ${state} DOI guidelines for liability determination`],
             specialRules: this.getStateSpecialRules(state, stateRegs),
-            timeRequirements: { acknowledgment: stateRegs?.timeRequirements.acknowledgment || 24, investigation: stateRegs?.timeRequirements.investigationDays || 15, decision: stateRegs?.timeRequirements.decisionDays || 30 }
+            timeRequirements: { acknowledgment: stateRegs?.timeRequirements?.acknowledgment || 24, investigation: stateRegs?.timeRequirements?.investigation || 15, decision: stateRegs?.timeRequirements?.decision || 30 }
         };
     }
 

@@ -28,7 +28,7 @@ interface EscalationHandlerResult {
 }
 
 export class EscalationHandler {
-  private readonly agentId: AgentRole = 'ESCALATION_HANDLER';
+  private readonly agentId: AgentRole = AgentRole.ESCALATION_HANDLER;
 
   // Authority thresholds
   private readonly AUTO_APPROVE_LIMIT = 25000;

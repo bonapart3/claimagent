@@ -5,7 +5,8 @@
  * This is the last checkpoint before automated decisions are made.
  */
 
-import type { Claim, EscalationTrigger } from '../../types/claim';
+import type { Claim } from '../../types/claim';
+import type { EscalationTrigger } from '../../types/agent';
 
 export interface ValidationResult {
     approved: boolean;

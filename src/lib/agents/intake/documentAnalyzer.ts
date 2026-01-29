@@ -2,7 +2,7 @@
 // Agent A1: Document Analyzer - Analyzes uploaded claim documents
 
 import { ClaimData, Document as ClaimDocument } from '@/lib/types/claim';
-import { AgentResult, AgentRole, EscalationTrigger } from '@/lib/types/agent';
+import { AgentResult, AgentRole, SimpleEscalation } from '@/lib/types/agent';
 import { auditLog } from '@/lib/utils/auditLogger';
 
 interface DocumentAnalysis {
@@ -31,11 +31,11 @@ interface ImageAnalysis {
 }
 
 export class DocumentAnalyzer {
-    private readonly agentId: AgentRole = 'DOCUMENT_ANALYZER';
+    private readonly agentId = AgentRole.DOCUMENT_ANALYZER;
 
     async analyze(document: ClaimDocument, claimData: ClaimData): Promise<AgentResult> {
         const startTime = Date.now();
-        const escalations: EscalationTrigger[] = [];
+        const escalations: SimpleEscalation[] = [];
 
         try {
             let analysis: DocumentAnalysis;
@@ -150,7 +150,7 @@ export class DocumentAnalyzer {
 
         return {
             documentId: document.id,
-            documentType: document.type,
+            documentType: document.type || 'UNKNOWN',
             confidence: imageAnalysis.qualityScore,
             extractedData: {
                 damageDetected: imageAnalysis.damageDetected,
@@ -330,7 +330,7 @@ export class DocumentAnalyzer {
 
         return {
             documentId: document.id,
-            documentType: document.type,
+            documentType: document.type || 'UNKNOWN',
             confidence: 0.75,
             extractedData,
             validationStatus: issues.length > 0 ? 'NEEDS_REVIEW' : 'VALID',
@@ -376,7 +376,7 @@ export class DocumentAnalyzer {
 
         return {
             documentId: document.id,
-            documentType: document.type,
+            documentType: document.type || 'UNKNOWN',
             confidence: 0.90,
             extractedData,
             validationStatus: issues.length > 0 ? 'NEEDS_REVIEW' : 'VALID',
@@ -454,7 +454,7 @@ export class DocumentAnalyzer {
     ): Promise<DocumentAnalysis> {
         return {
             documentId: document.id,
-            documentType: document.type,
+            documentType: document.type || 'UNKNOWN',
             confidence: 0.60,
             extractedData: {
                 fileName: document.fileName,

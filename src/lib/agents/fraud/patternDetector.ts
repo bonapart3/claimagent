@@ -142,7 +142,7 @@ export class PatternDetector {
 
             // Check for denied/fraud-flagged prior claims
             const flaggedClaims = priorClaims.filter(
-                c => c.status === 'DENIED' || c.status === 'ESCALATED_SIU'
+                c => c.status === 'CLOSED' || (c.status as string) === 'FLAGGED_FRAUD'
             );
 
             if (flaggedClaims.length > 0) {

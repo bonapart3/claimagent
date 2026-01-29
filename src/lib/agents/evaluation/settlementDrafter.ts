@@ -2,26 +2,13 @@
 // Agent D3: Settlement Drafter - Prepares settlement offers and documentation
 
 import { ClaimData } from '@/lib/types/claim';
-import { AgentResult, AgentRole, EscalationTrigger, SettlementDraft } from '@/lib/types/agent';
+import { AgentResult, AgentRole, SimpleEscalation, SettlementDraft, SettlementComponent, SettlementNegotiationRange } from '@/lib/types/agent';
 import { CoverageAnalysis, ReserveAnalysis } from '@/lib/types/agent';
 import { auditLog } from '@/lib/utils/auditLogger';
 import { FINANCIAL_THRESHOLDS, AUTO_APPROVAL_THRESHOLDS } from '@/lib/constants/thresholds';
 
-interface SettlementComponent {
-    category: string;
-    description: string;
-    amount: number;
-    basis: string;
-}
-
-interface SettlementNegotiationRange {
-    minimum: number;
-    target: number;
-    maximum: number;
-}
-
 export class SettlementDrafter {
-    private readonly agentId: AgentRole = 'SETTLEMENT_DRAFTER';
+    private readonly agentId = AgentRole.SETTLEMENT_DRAFTER;
 
     async draft(
         claimData: ClaimData,
@@ -29,7 +16,7 @@ export class SettlementDrafter {
         reserveAnalysis: ReserveAnalysis
     ): Promise<AgentResult> {
         const startTime = Date.now();
-        const escalations: EscalationTrigger[] = [];
+        const escalations: SimpleEscalation[] = [];
 
         try {
             // Step 1: Calculate settlement components
@@ -132,8 +119,8 @@ export class SettlementDrafter {
         const components: SettlementComponent[] = [];
 
         // Vehicle damage component
-        const damageBreakdown = reserveAnalysis.breakdown.find(
-            b => b.category === 'Vehicle Damage'
+        const damageBreakdown = reserveAnalysis.breakdown?.find(
+            (b: any) => b.category === 'Vehicle Damage'
         );
         if (damageBreakdown) {
             components.push({
@@ -159,8 +146,8 @@ export class SettlementDrafter {
         }
 
         // Bodily injury component
-        const injuryBreakdown = reserveAnalysis.breakdown.find(
-            b => b.category === 'Bodily Injury'
+        const injuryBreakdown = reserveAnalysis.breakdown?.find(
+            (b: any) => b.category === 'Bodily Injury'
         );
         if (injuryBreakdown) {
             components.push({
@@ -179,8 +166,8 @@ export class SettlementDrafter {
         }
 
         // Rental car component
-        const rentalBreakdown = reserveAnalysis.breakdown.find(
-            b => b.category === 'Rental Car'
+        const rentalBreakdown = reserveAnalysis.breakdown?.find(
+            (b: any) => b.category === 'Rental Car'
         );
         if (rentalBreakdown) {
             components.push({
@@ -192,8 +179,8 @@ export class SettlementDrafter {
         }
 
         // Towing and storage
-        const towingBreakdown = reserveAnalysis.breakdown.find(
-            b => b.category === 'Towing & Storage'
+        const towingBreakdown = reserveAnalysis.breakdown?.find(
+            (b: any) => b.category === 'Towing & Storage'
         );
         if (towingBreakdown) {
             components.push({
@@ -221,7 +208,7 @@ export class SettlementDrafter {
         components: SettlementComponent[],
         coverageAnalysis: CoverageAnalysis
     ): SettlementComponent[] {
-        const netAvailable = coverageAnalysis.netCoverageAvailable;
+        const netAvailable = coverageAnalysis.netCoverageAvailable ?? 0;
         const totalRequested = components.reduce((sum, c) => sum + c.amount, 0);
 
         if (totalRequested <= netAvailable) {
@@ -249,7 +236,7 @@ export class SettlementDrafter {
         }
 
         // Check fraud score
-        if ((claimData.fraudScore || 0) > AUTO_APPROVAL_THRESHOLDS.FRAUD_SCORE) {
+        if ((claimData.fraudScore || 0) > AUTO_APPROVAL_THRESHOLDS.MIN_FRAUD_SCORE_PASS) {
             return false;
         }
 
@@ -259,7 +246,7 @@ export class SettlementDrafter {
         }
 
         // Check for coverage gaps
-        if (coverageAnalysis.gaps.length > 0) {
+        if ((coverageAnalysis.gaps ?? []).length > 0) {
             return false;
         }
 
@@ -430,7 +417,7 @@ ClaimAgent™ Insurance Services
             recommendations.push('Obtain signed release before payment disbursement');
         }
 
-        if (draft.paymentDetails.splitPayments) {
+        if (draft.paymentDetails?.splitPayments) {
             recommendations.push('Issue split payments to policyholder and lienholder');
         }
 
@@ -438,11 +425,13 @@ ClaimAgent™ Insurance Services
             recommendations.push('Arrange for salvage title transfer and vehicle pickup');
         }
 
-        if (draft.netAmount > 25000) {
+        if ((draft.netAmount || 0) > 25000) {
             recommendations.push('Recommend supervisor review before final approval');
         }
 
-        recommendations.push(`Settlement offer expires ${new Date(draft.expirationDate).toLocaleDateString()}`);
+        if (draft.expirationDate) {
+            recommendations.push(`Settlement offer expires ${new Date(draft.expirationDate).toLocaleDateString()}`);
+        }
 
         return recommendations;
     }

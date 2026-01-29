@@ -3,14 +3,14 @@
 
 import { ClaimData, ClaimType } from '@/lib/types/claim';
 import { Policy, Coverage, CoverageType } from '@/lib/types/policy';
-import { AgentResult, AgentRole, EscalationTrigger, CoverageAnalysis } from '@/lib/types/agent';
+import { AgentResult, AgentRole, SimpleEscalation, CoverageAnalysis } from '@/lib/types/agent';
 import { auditLog } from '@/lib/utils/auditLogger';
 
 interface CoverageApplicability {
     coverageType: CoverageType;
     isApplicable: boolean;
     limit: number;
-    deductible: number;
+    deductible?: number;
     remaining: number;
     reason: string;
 }
@@ -24,11 +24,11 @@ interface CoverageRecommendation {
 }
 
 export class CoverageCalculator {
-    private readonly agentId: AgentRole = 'COVERAGE_CALCULATOR';
+    private readonly agentId = AgentRole.COVERAGE_CALCULATOR;
 
     async analyze(claimData: ClaimData, policy: Policy): Promise<AgentResult> {
         const startTime = Date.now();
-        const escalations: EscalationTrigger[] = [];
+        const escalations: SimpleEscalation[] = [];
 
         try {
             // Step 1: Validate policy is active
@@ -100,7 +100,7 @@ export class CoverageCalculator {
                 claimId: claimData.id,
                 action: 'COVERAGE_ANALYSIS_COMPLETED',
                 agentId: this.agentId,
-                description: `Coverage analysis: $${coverageAnalysis.netCoverageAvailable.toLocaleString()} available`,
+                description: `Coverage analysis: $${(coverageAnalysis.netCoverageAvailable ?? 0).toLocaleString()} available`,
                 details: { coverage: coverageAnalysis },
             });
 
@@ -152,22 +152,23 @@ export class CoverageCalculator {
             };
         }
 
-        // Check policy status
-        if (policy.status === 'CANCELLED') {
+        // Check policy status (support both uppercase and lowercase)
+        const status = policy.status.toUpperCase();
+        if (status === 'CANCELLED') {
             return {
                 valid: false,
                 reason: 'Policy was cancelled',
             };
         }
 
-        if (policy.status === 'SUSPENDED') {
+        if (status === 'SUSPENDED') {
             return {
                 valid: false,
                 reason: 'Policy was suspended at time of loss',
             };
         }
 
-        if (policy.status === 'LAPSED') {
+        if (status === 'LAPSED') {
             return {
                 valid: false,
                 reason: 'Policy was lapsed due to non-payment',
@@ -370,7 +371,7 @@ export class CoverageCalculator {
 
     private determinePrimaryCoverage(
         coverages: CoverageApplicability[],
-        claimType: ClaimType
+        claimType: ClaimType | string
     ): CoverageType | null {
         // Priority order for each claim type
         const priorities: Record<string, CoverageType[]> = {
@@ -410,11 +411,12 @@ export class CoverageCalculator {
 
         // Higher confidence with clear coverage match
         const hasHighLimit = applicable.some(c => c.remaining > 50000);
-        const hasLowDeductible = applicable.some(c => c.deductible < 1000);
+        const hasLowDeductible = applicable.some(c => (c.deductible ?? 0) < 1000);
 
         let confidence = 0.7;
         if (hasHighLimit) confidence += 0.1;
         if (hasLowDeductible) confidence += 0.1;
+        // Note: deductible can be undefined
         if (applicable.length > 1) confidence += 0.05;
 
         return Math.min(confidence, 0.95);
@@ -426,25 +428,25 @@ export class CoverageCalculator {
     ): string[] {
         const recommendations: string[] = [];
 
-        if (analysis.gaps.length > 0) {
+        if (analysis.gaps && analysis.gaps.length > 0) {
             recommendations.push(
                 'Discuss coverage gaps with policyholder for future policy review'
             );
         }
 
-        if (analysis.netCoverageAvailable < (claimData.estimatedAmount || 0)) {
+        if ((analysis.netCoverageAvailable ?? 0) < (claimData.estimatedAmount || 0)) {
             recommendations.push(
                 'Advise policyholder of potential out-of-pocket expenses'
             );
         }
 
-        if (analysis.deductibleApplicable > 0) {
+        if ((analysis.deductibleApplicable ?? 0) > 0) {
             recommendations.push(
-                `Collect $${analysis.deductibleApplicable.toLocaleString()} deductible before settlement`
+                `Collect $${(analysis.deductibleApplicable ?? 0).toLocaleString()} deductible before settlement`
             );
         }
 
-        const applicable = analysis.applicableCoverages.filter(c => c.isApplicable);
+        const applicable = (analysis.applicableCoverages ?? []).filter((c: any) => c.isApplicable);
         if (applicable.length > 1) {
             recommendations.push(
                 'Multiple coverages may apply - review for optimal claim handling'

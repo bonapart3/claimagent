@@ -13,7 +13,7 @@ interface CommunicationTemplate {
 }
 
 export class CustomerWriter {
-    private readonly agentId: AgentRole = 'CUSTOMER_WRITER';
+    private readonly agentId = AgentRole.CUSTOMER_WRITER;
 
     async generateCommunication(
         claimData: ClaimData,

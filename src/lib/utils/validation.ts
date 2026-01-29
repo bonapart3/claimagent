@@ -28,7 +28,12 @@ export async function validateSession(request: NextRequest): Promise<Session | n
         }
 
         // Look up session in database
-        const session = await prisma.userSession.findFirst({
+        // Note: userSession model may not exist in all Prisma schemas
+        const prismaAny = prisma as any;
+        if (!prismaAny.userSession) {
+            return null;
+        }
+        const session = await prismaAny.userSession.findFirst({
             where: { token },
             include: { user: true },
         });

@@ -6,8 +6,25 @@
  * @module services/aiDamageAnalysis
  */
 
-import { ClaimEvidence, DamageAssessment, RepairEstimate, VehicleInfo } from '../types/claim';
+import { DamageAssessment, VehicleData } from '../types/claim';
 import { auditLog } from '../utils/auditLogger';
+
+// Local type definitions for this service
+type VehicleInfo = VehicleData;
+
+interface ClaimEvidence {
+  photos: DamagePhoto[];
+  documents: string[];
+  statements: string[];
+}
+
+interface RepairEstimate {
+  laborCost: number;
+  partsCost: number;
+  paintCost: number;
+  totalCost: number;
+  estimatedRepairDays: number;
+}
 
 // ============================================================================
 // TYPES & INTERFACES

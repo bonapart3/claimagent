@@ -2,7 +2,7 @@
 // Agent B2: Liability Assessor - Determines fault and liability percentages
 
 import { ClaimData, Participant } from '@/lib/types/claim';
-import { AgentResult, AgentRole, EscalationTrigger } from '@/lib/types/agent';
+import { AgentResult, AgentRole, SimpleEscalation } from '@/lib/types/agent';
 import { auditLog } from '@/lib/utils/auditLogger';
 
 interface LiabilityAssessment {
@@ -28,7 +28,7 @@ interface FaultIndicator {
 }
 
 export class LiabilityAssessor {
-    private readonly agentId: AgentRole = 'LIABILITY_ASSESSOR';
+    private readonly agentId: AgentRole = AgentRole.LIABILITY_ASSESSOR;
 
     // State comparative negligence rules
     private readonly stateRules: Record<string, string> = {
@@ -56,7 +56,7 @@ export class LiabilityAssessor {
 
     async assess(claimData: ClaimData): Promise<AgentResult> {
         const startTime = Date.now();
-        const escalations: EscalationTrigger[] = [];
+        const escalations: SimpleEscalation[] = [];
 
         try {
             // Step 1: Gather fault indicators

@@ -334,7 +334,7 @@ export class SeverityScorer {
         if (score >= 80) reasons.push('Overall severity score exceeds critical threshold');
         if (input.injurySeverity === 'fatal') reasons.push('Fatality involved');
         if (input.litigationIndicators.length > 0) reasons.push('Litigation indicators present');
-        if (input.estimatedDamage > AUTO_APPROVAL_LIMITS.maxClaimAmount * 3) reasons.push('Claim value significantly exceeds limits');
+        if (input.estimatedDamage > AUTO_APPROVAL_LIMITS.MAX_CLAIM_AMOUNT * 3) reasons.push('Claim value significantly exceeds limits');
 
         const criticalFlags = flags.filter(f => f.severity === 'critical');
         if (criticalFlags.length >= 2) reasons.push('Multiple critical risk factors');
@@ -360,7 +360,7 @@ export class SeverityScorer {
             return { destination: input.injurySeverity === 'severe' ? 'senior_adjuster' : 'standard_adjuster', reasoning: 'Bodily injury requires human assessment', alternativeRoutes: [], requiredApprovals: ['Claims Adjuster'] };
         }
 
-        if (score <= 35 && complexity === 'simple' && input.estimatedDamage <= AUTO_APPROVAL_LIMITS.maxClaimAmount && !input.injuryReported && input.vehicleCount === 1 && !input.isCommercialAuto) {
+        if (score <= 35 && complexity === 'simple' && input.estimatedDamage <= AUTO_APPROVAL_LIMITS.MAX_CLAIM_AMOUNT && !input.injuryReported && input.vehicleCount === 1 && !input.isCommercialAuto) {
             return { destination: 'auto_approval', reasoning: 'Low complexity eligible for automation', alternativeRoutes: ['express_desk'], requiredApprovals: [] };
         }
 

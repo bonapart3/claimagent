@@ -2,7 +2,7 @@
 // Agent F1: QA Reviewer - Quality assurance review of claim decisions
 
 import { ClaimData } from '@/lib/types/claim';
-import { AgentResult, AgentRole, EscalationTrigger } from '@/lib/types/agent';
+import { AgentResult, AgentRole, SimpleEscalation } from '@/lib/types/agent';
 import { auditLog } from '@/lib/utils/auditLogger';
 
 interface QACheckResult {
@@ -29,14 +29,14 @@ interface QAReviewResult {
 }
 
 export class QAReviewer {
-    private readonly agentId: AgentRole = 'QA_REVIEWER';
+    private readonly agentId: AgentRole = AgentRole.QA_REVIEWER;
 
     async review(
         claimData: ClaimData,
         processingResults: Record<string, unknown>
     ): Promise<AgentResult> {
         const startTime = Date.now();
-        const escalations: EscalationTrigger[] = [];
+        const escalations: SimpleEscalation[] = [];
         const checks: QACheckResult[] = [];
 
         try {

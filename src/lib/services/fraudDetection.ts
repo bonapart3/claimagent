@@ -6,7 +6,10 @@
  * @module services/fraudDetection
  */
 
-import { Claim, ClaimParticipant } from '../types/claim';
+import { Claim, Participant } from '../types/claim';
+
+// Type alias for backward compatibility
+type ClaimParticipant = Participant;
 import { auditLog } from '../utils/auditLogger';
 
 // ============================================================================
@@ -416,7 +419,7 @@ export class FraudDetectionService {
 
   private checkMedicalBillingAnomalies(claim: Claim): FraudFlag[] {
     const flags: FraudFlag[] = [];
-    const totalBilling = claim.medicalBills?.reduce((sum, bill) => sum + (bill.amount || 0), 0) || 0;
+    const totalBilling = claim.medicalBills?.reduce((sum: number, bill: { amount?: number }) => sum + (bill.amount || 0), 0) || 0;
     
     if (totalBilling > 50000) {
       flags.push({
@@ -447,7 +450,7 @@ export class FraudDetectionService {
 
   private checkSuspiciousRepairs(claim: Claim): FraudFlag[] {
     const flags: FraudFlag[] = [];
-    const avgEstimate = claim.repairEstimates?.reduce((sum, est) => sum + (est.total || 0), 0) / 
+    const avgEstimate = claim.repairEstimates?.reduce((sum: number, est: { total?: number }) => sum + (est.total || 0), 0) /
                         (claim.repairEstimates?.length || 1) || 0;
     
     if (avgEstimate > 15000) {

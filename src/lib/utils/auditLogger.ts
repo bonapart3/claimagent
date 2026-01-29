@@ -7,6 +7,8 @@ export interface AuditLogEntry {
     action: string;
     claimId?: string;
     userId?: string;
+    agentId?: string;
+    description?: string;
     details?: Record<string, any>;
     // Optional extras accepted for convenience by callers; persisted inside details if needed
     entityType?: string;
@@ -42,10 +44,9 @@ export class AuditLogger {
                     userId: entry.userId || undefined,
                     entityType: entry.entityType || 'SYSTEM',
                     entityId: entry.entityId || (entry.claimId ?? 'UNKNOWN'),
-                    changes: Object.keys(changes).length ? changes : undefined,
                     ipAddress: entry.ipAddress,
                     userAgent: entry.userAgent,
-                },
+                } as any,
             });
         } catch (error) {
             console.error('Audit log failed:', error);

@@ -1,4 +1,3 @@
-typescript
 /**
  * ClaimAgent™ - Data Parser Agent (Agent A1)
  * 
@@ -63,13 +62,12 @@ export class DataParser {
                 reportedDate: basicInfo.reportedDate,
                 lossDate: basicInfo.lossDate,
                 lossTime: basicInfo.lossTime,
-                location,
+                lossLocation: location,
                 vehicles,
                 participants,
                 incident,
                 documents,
-                telematics,
-                source: claim.source || 'UNKNOWN',
+                rawData: { telematics, source: claim.source || 'UNKNOWN' },
                 confidence: parser.calculateConfidence({
                     basicInfo,
                     location,
@@ -77,15 +75,19 @@ export class DataParser {
                     participants,
                     incident,
                     documents
-                }),
-                missingData: parser.identifyMissingData({
+                })
+            };
+
+            // Store additional data that doesn't fit the interface
+            if (parsedData.rawData) {
+                parsedData.rawData.missingData = parser.identifyMissingData({
                     basicInfo,
                     location,
                     vehicles,
                     participants,
                     incident
-                })
-            };
+                });
+            }
 
             console.log(`[AGENT A1: DataParser] ✓ Parsed FNOL successfully with ${parsedData.confidence}% confidence`);
 
@@ -93,7 +95,7 @@ export class DataParser {
 
         } catch (error) {
             console.error(`[AGENT A1: DataParser] ✗ Error parsing FNOL:`, error);
-            throw new Error(`Failed to parse FNOL: ${error.message}`);
+            throw new Error(`Failed to parse FNOL: ${(error as Error).message}`);
         }
     }
 
@@ -105,14 +107,14 @@ export class DataParser {
         policyholderId: string;
         reportedDate: Date;
         lossDate: Date;
-        lossTime: string | null;
+        lossTime: string | undefined;
     } {
         return {
             policyNumber: claim.policyNumber || claim.policy?.number,
             policyholderId: claim.policyholderId,
             reportedDate: new Date(claim.createdAt),
             lossDate: new Date(claim.lossDate),
-            lossTime: claim.lossTime || null
+            lossTime: claim.lossTime || undefined
         };
     }
 
@@ -175,14 +177,14 @@ export class DataParser {
                 color: claim.vehicle.color,
                 licensePlate: claim.vehicle.licensePlate,
                 state: claim.vehicle.registrationState,
+                totalLoss: false,
                 isInsured: true,
                 role: 'INSURED',
                 ownerName: claim.policyholder?.name,
                 mileage: claim.vehicle.mileage,
                 condition: claim.vehicle.condition,
                 priorDamage: claim.vehicle.priorDamage,
-                hasADAS: this.checkForADAS(claim.vehicle),
-                hasSensorDamage: false // Will be determined during damage analysis
+                hasADAS: this.checkForADAS(claim.vehicle)
             });
         }
 
@@ -199,12 +201,12 @@ export class DataParser {
                     color: otherVehicle.color,
                     licensePlate: otherVehicle.licensePlate,
                     state: otherVehicle.state,
+                    totalLoss: false,
                     isInsured: false,
                     role: 'THIRD_PARTY',
                     ownerName: otherVehicle.ownerName,
                     insuranceInfo: otherVehicle.insuranceInfo,
-                    hasADAS: this.checkForADAS(otherVehicle),
-                    hasSensorDamage: false
+                    hasADAS: this.checkForADAS(otherVehicle)
                 });
             }
         }
@@ -417,7 +419,7 @@ export class DataParser {
                     url: doc.url,
                     filename: doc.filename,
                     uploadedAt: doc.uploadedAt,
-                    error: error.message
+                    error: (error as Error).message
                 });
             }
         }

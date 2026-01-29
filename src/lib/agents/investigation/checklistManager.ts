@@ -103,7 +103,7 @@ export class ChecklistManager {
         const items: ChecklistItem[] = [
             { id: 'CORE-001', description: 'Verify policy coverage and effective dates', required: true, priority: 'critical', status: 'not_started', handbookReference: 'Claims Manual Section 2.1 - Coverage Verification', regulatoryReference: 'NAIC Model Regulation - Policy Verification', dependencies: [], notes: ['Must be completed before proceeding with investigation'], evidence: [] },
             { id: 'CORE-002', description: 'Obtain and review First Notice of Loss (FNOL)', required: true, priority: 'critical', status: 'not_started', handbookReference: 'Claims Manual Section 1.2 - FNOL Processing', dependencies: [], notes: [], evidence: [] },
-            { id: 'CORE-003', description: 'Send acknowledgment letter to insured', required: true, priority: 'critical', status: 'not_started', handbookReference: 'Communication Templates - Acknowledgment', regulatoryReference: `${input.state} Insurance Code - Acknowledgment Requirements`, dependencies: ['CORE-002'], notes: [`Must be sent within ${stateRegs?.timeRequirements.acknowledgment || 24} hours`], evidence: [] },
+            { id: 'CORE-003', description: 'Send acknowledgment letter to insured', required: true, priority: 'critical', status: 'not_started', handbookReference: 'Communication Templates - Acknowledgment', regulatoryReference: `${input.state} Insurance Code - Acknowledgment Requirements`, dependencies: ['CORE-002'], notes: [`Must be sent within ${stateRegs?.timeRequirements?.acknowledgment || 24} hours`], evidence: [] },
             { id: 'CORE-004', description: 'Obtain recorded statement from insured', required: true, priority: 'high', status: 'not_started', handbookReference: 'Claims Manual Section 3.1 - Statement Guidelines', dependencies: ['CORE-003'], notes: ['Record date, time, and method of statement'], evidence: [] },
             { id: 'CORE-005', description: 'Collect vehicle photos (minimum 8 angles)', required: true, priority: 'high', status: 'not_started', handbookReference: 'Claims Manual Section 3.3 - Photo Documentation', dependencies: [], notes: ['Include VIN, odometer, all damage areas, and overall vehicle condition'], evidence: [] },
             { id: 'CORE-006', description: 'Obtain police report (if applicable)', required: false, priority: 'high', status: 'not_started', handbookReference: 'Claims Manual Section 3.2 - Police Report Review', dependencies: [], notes: ['Required for liability determination in multi-vehicle accidents'], evidence: [] },
@@ -189,9 +189,9 @@ export class ChecklistManager {
     private generateComplianceChecklist(input: ChecklistInput): ChecklistCategory {
         const stateRegs = getStateRegulation(input.state);
         const items: ChecklistItem[] = [
-            { id: 'COMP-REG-001', description: 'Meet state acknowledgment deadline', required: true, priority: 'critical', status: 'not_started', regulatoryReference: `${input.state} Insurance Code - ${stateRegs?.timeRequirements.acknowledgment || 24} hour acknowledgment`, dependencies: ['CORE-003'], notes: [], evidence: [] },
-            { id: 'COMP-REG-002', description: 'Complete investigation within regulatory timeframe', required: true, priority: 'critical', status: 'not_started', regulatoryReference: `${input.state} - ${stateRegs?.timeRequirements.investigationDays || 15} day investigation requirement`, dependencies: [], notes: [], evidence: [] },
-            { id: 'COMP-REG-003', description: 'Provide coverage decision within deadline', required: true, priority: 'critical', status: 'not_started', regulatoryReference: `${input.state} - ${stateRegs?.timeRequirements.decisionDays || 30} day decision requirement`, dependencies: ['COMP-REG-002'], notes: [], evidence: [] },
+            { id: 'COMP-REG-001', description: 'Meet state acknowledgment deadline', required: true, priority: 'critical', status: 'not_started', regulatoryReference: `${input.state} Insurance Code - ${stateRegs?.timeRequirements?.acknowledgment || 24} hour acknowledgment`, dependencies: ['CORE-003'], notes: [], evidence: [] },
+            { id: 'COMP-REG-002', description: 'Complete investigation within regulatory timeframe', required: true, priority: 'critical', status: 'not_started', regulatoryReference: `${input.state} - ${stateRegs?.timeRequirements?.investigation || 15} day investigation requirement`, dependencies: [], notes: [], evidence: [] },
+            { id: 'COMP-REG-003', description: 'Provide coverage decision within deadline', required: true, priority: 'critical', status: 'not_started', regulatoryReference: `${input.state} - ${stateRegs?.timeRequirements?.decision || 30} day decision requirement`, dependencies: ['COMP-REG-002'], notes: [], evidence: [] },
             { id: 'COMP-REG-004', description: 'Document good faith investigation', required: true, priority: 'high', status: 'not_started', regulatoryReference: 'Unfair Claims Settlement Practices Act', dependencies: [], notes: ['Maintain detailed file notes of all investigation steps'], evidence: [] }
         ];
         return { name: 'Regulatory Compliance', description: 'State-specific compliance requirements', priority: 'critical', items, completionPercentage: 0 };
@@ -212,15 +212,15 @@ export class ChecklistManager {
         const now = new Date();
 
         const ackDeadline = new Date(now);
-        ackDeadline.setHours(ackDeadline.getHours() + (stateRegs?.timeRequirements.acknowledgment || 24));
+        ackDeadline.setHours(ackDeadline.getHours() + (stateRegs?.timeRequirements?.acknowledgment || 24));
         deadlines.push({ description: 'Send claim acknowledgment', dueDate: ackDeadline, regulatoryBasis: `${input.state} Insurance Code - Acknowledgment Requirement`, priority: 'critical', relatedItems: ['CORE-003'] });
 
         const invDeadline = new Date(now);
-        invDeadline.setDate(invDeadline.getDate() + (stateRegs?.timeRequirements.investigationDays || 15));
+        invDeadline.setDate(invDeadline.getDate() + (stateRegs?.timeRequirements?.investigation || 15));
         deadlines.push({ description: 'Complete claim investigation', dueDate: invDeadline, regulatoryBasis: `${input.state} - Investigation Timeframe`, priority: 'critical', relatedItems: ['COMP-REG-002'] });
 
         const decisionDeadline = new Date(now);
-        decisionDeadline.setDate(decisionDeadline.getDate() + (stateRegs?.timeRequirements.decisionDays || 30));
+        decisionDeadline.setDate(decisionDeadline.getDate() + (stateRegs?.timeRequirements?.decision || 30));
         deadlines.push({ description: 'Provide coverage decision', dueDate: decisionDeadline, regulatoryBasis: `${input.state} - Decision Requirement`, priority: 'critical', relatedItems: ['COMP-REG-003'] });
 
         return deadlines;

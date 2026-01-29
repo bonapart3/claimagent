@@ -84,7 +84,8 @@ export class CoverageAnalyzerService {
         const recommendations: string[] = [];
 
         // Check policy status
-        if (!this.isPolicyActive(policy, claimData.lossDate)) {
+        const lossDateStr = claimData.lossDate instanceof Date ? claimData.lossDate.toISOString() : String(claimData.lossDate);
+        if (!this.isPolicyActive(policy, lossDateStr)) {
             warnings.push('Policy may not have been active on date of loss');
         }
 

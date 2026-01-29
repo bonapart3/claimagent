@@ -2,7 +2,8 @@
 // Agent G1: Regulatory Validator - State compliance validation
 
 import { ClaimData } from '@/lib/types/claim';
-import { AgentResult, AgentRole, EscalationTrigger } from '@/lib/types/agent';
+import { AgentResult, AgentRole, SimpleEscalation } from '@/lib/types/agent';
+import { StateRegulation } from '@/lib/constants/stateRegulations';
 import { auditLog } from '@/lib/utils/auditLogger';
 import { stateRegulations } from '@/lib/constants/stateRegulations';
 
@@ -30,14 +31,14 @@ interface RegulatoryValidationResult {
 }
 
 export class RegulatoryValidator {
-  private readonly agentId: AgentRole = 'REGULATORY_VALIDATOR';
+  private readonly agentId: AgentRole = AgentRole.REGULATORY_VALIDATOR;
 
   async validate(
     claimData: ClaimData,
     processingResults: Record<string, unknown>
   ): Promise<AgentResult> {
     const startTime = Date.now();
-    const escalations: EscalationTrigger[] = [];
+    const escalations: SimpleEscalation[] = [];
     const checks: ValidationCheck[] = [];
 
     try {
@@ -124,11 +125,11 @@ export class RegulatoryValidator {
   private checkTimelinessRequirements(
     claimData: ClaimData,
     state: string,
-    regulations: Record<string, unknown>
+    regulations: StateRegulation
   ): ValidationCheck[] {
     const checks: ValidationCheck[] = [];
-    const ackDeadline = (regulations.acknowledgmentDeadlineDays as number) || 15;
-    const decisionDeadline = (regulations.decisionDeadlineDays as number) || 30;
+    const ackDeadline = regulations.timeRequirements?.acknowledgment || 15;
+    const decisionDeadline = regulations.timeRequirements?.decision || 30;
 
     // Acknowledgment timeliness
     if (claimData.createdAt && claimData.acknowledgedAt) {
@@ -170,7 +171,7 @@ export class RegulatoryValidator {
   private checkNotificationRequirements(
     claimData: ClaimData,
     state: string,
-    regulations: Record<string, unknown>
+    regulations: StateRegulation
   ): ValidationCheck[] {
     const checks: ValidationCheck[] = [];
 
@@ -219,7 +220,7 @@ export class RegulatoryValidator {
   private checkSettlementRequirements(
     claimData: ClaimData,
     state: string,
-    regulations: Record<string, unknown>
+    regulations: StateRegulation
   ): ValidationCheck[] {
     const checks: ValidationCheck[] = [];
 
@@ -269,7 +270,7 @@ export class RegulatoryValidator {
   private checkDocumentationRequirements(
     claimData: ClaimData,
     state: string,
-    regulations: Record<string, unknown>
+    regulations: StateRegulation
   ): ValidationCheck[] {
     const checks: ValidationCheck[] = [];
 
@@ -335,7 +336,7 @@ export class RegulatoryValidator {
   private checkPaymentRequirements(
     claimData: ClaimData,
     state: string,
-    regulations: Record<string, unknown>
+    regulations: StateRegulation
   ): ValidationCheck[] {
     const checks: ValidationCheck[] = [];
 

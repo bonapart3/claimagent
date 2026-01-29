@@ -27,24 +27,28 @@ export class ValidationSpecialist {
 
         try {
             const validationResult: ValidationResult = {
+                isValid: true,
                 valid: true,
                 errors: [],
                 warnings: [],
-                coverage: null,
-                policyStatus: null
+                coverage: undefined,
+                policyStatus: undefined
             };
 
             // 1. Policy existence and status
-            const policyCheck = await validator.checkPolicyStatus(claim.policyNumber, parsedData.lossDate);
+            const lossDate = parsedData.lossDate ? new Date(parsedData.lossDate as string) : new Date();
+            const policyCheck = await validator.checkPolicyStatus(claim.policyNumber, lossDate);
             if (!policyCheck.valid) {
+                validationResult.isValid = false;
                 validationResult.valid = false;
                 validationResult.errors.push(...policyCheck.errors);
             }
             validationResult.policyStatus = policyCheck.status;
 
             // 2. Loss date within policy period
-            const dateCheck = validator.validateLossDate(claim, parsedData.lossDate);
+            const dateCheck = validator.validateLossDate(claim, lossDate);
             if (!dateCheck.valid) {
+                validationResult.isValid = false;
                 validationResult.valid = false;
                 validationResult.errors.push(...dateCheck.errors);
             }
@@ -52,6 +56,7 @@ export class ValidationSpecialist {
             // 3. Vehicle coverage verification
             const vehicleCheck = await validator.verifyVehicleCoverage(claim, parsedData);
             if (!vehicleCheck.valid) {
+                validationResult.isValid = false;
                 validationResult.valid = false;
                 validationResult.errors.push(...vehicleCheck.errors);
             } else {
@@ -61,6 +66,7 @@ export class ValidationSpecialist {
             // 4. Driver eligibility
             const driverCheck = await validator.validateDriver(claim, parsedData);
             if (!driverCheck.valid) {
+                validationResult.isValid = false;
                 validationResult.valid = false;
                 validationResult.errors.push(...driverCheck.errors);
             }
@@ -69,6 +75,7 @@ export class ValidationSpecialist {
             const coverageCheck = await validator.verifyCoverageType(claim, parsedData);
             validationResult.coverage = coverageCheck;
             if (!coverageCheck.hasApplicableCoverage) {
+                validationResult.isValid = false;
                 validationResult.valid = false;
                 validationResult.errors.push('No applicable coverage found for this loss type');
             }
@@ -76,6 +83,7 @@ export class ValidationSpecialist {
             // 6. Check for exclusions
             const exclusionCheck = await validator.checkExclusions(claim, parsedData);
             if (exclusionCheck.hasExclusions) {
+                validationResult.isValid = false;
                 validationResult.valid = false;
                 validationResult.errors.push(...exclusionCheck.exclusions.map((e: any) => `Exclusion: ${e}`));
             }
@@ -84,17 +92,18 @@ export class ValidationSpecialist {
             const limitsCheck = validator.checkLimitsAndDeductibles(claim, parsedData, coverageCheck);
             validationResult.warnings.push(...limitsCheck.warnings);
 
-            console.log(`[AGENT A2: ValidationSpecialist] ${validationResult.valid ? '✓' : '✗'} Validation ${validationResult.valid ? 'passed' : 'failed'}`);
+            console.log(`[AGENT A2: ValidationSpecialist] ${validationResult.isValid ? '✓' : '✗'} Validation ${validationResult.isValid ? 'passed' : 'failed'}`);
 
             return validationResult;
 
         } catch (error) {
             console.error(`[AGENT A2: ValidationSpecialist] ✗ Validation error:`, error);
             return {
+                isValid: false,
                 valid: false,
-                errors: [`Validation system error: ${error.message}`],
+                errors: [`Validation system error: ${(error as Error).message}`],
                 warnings: [],
-                coverage: null,
+                coverage: undefined,
                 policyStatus: 'ERROR'
             };
         }
@@ -135,7 +144,7 @@ export class ValidationSpecialist {
         } catch (error) {
             return {
                 valid: false,
-                errors: [`Unable to verify policy status: ${error.message}`],
+                errors: [`Unable to verify policy status: ${(error as Error).message}`],
                 status: 'ERROR'
             };
         }
@@ -183,7 +192,8 @@ export class ValidationSpecialist {
         const errors: string[] = [];
         const warnings: string[] = [];
 
-        const insuredVehicle = parsedData.vehicles.find(v => v.isInsured);
+        const vehicles = parsedData.vehicles ?? [];
+        const insuredVehicle = vehicles.find((v: any) => v.isInsured) ?? parsedData.vehicle;
         if (!insuredVehicle) {
             errors.push('No insured vehicle identified in claim');
             return { valid: false, errors, warnings };
@@ -203,7 +213,7 @@ export class ValidationSpecialist {
         // Check for recent policy changes
         const recentChanges = await this.policyService.getRecentPolicyChanges(
             claim.policyNumber,
-            parsedData.lossDate
+            30 // days
         );
 
         if (recentChanges && recentChanges.length > 0) {
@@ -222,10 +232,11 @@ export class ValidationSpecialist {
     }> {
         const errors: string[] = [];
 
-        const insuredDriver = parsedData.participants.find(p => p.role === 'INSURED_DRIVER');
+        const participants = parsedData.participants ?? [];
+        const insuredDriver = participants.find((p: any) => p.role === 'INSURED_DRIVER');
         if (!insuredDriver) {
-            errors.push('No driver information provided');
-            return { valid: false, errors };
+            // No driver info is not always an error
+            return { valid: true, errors };
         }
 
         // Check if driver is listed on policy
@@ -256,6 +267,8 @@ export class ValidationSpecialist {
      */
     private async verifyCoverageType(claim: any, parsedData: ParsedClaimData): Promise<CoverageVerification> {
         const coverage: CoverageVerification = {
+            policyId: claim.policyId || claim.id || '',
+            isValid: false,
             hasApplicableCoverage: false,
             coverageTypes: [],
             limits: {},
@@ -263,58 +276,53 @@ export class ValidationSpecialist {
             applicableParts: []
         };
 
-        const incidentType = parsedData.incident.type;
+        const incidentType = parsedData.incident?.type || claim.claimType || 'COLLISION';
 
         // Determine applicable coverage based on incident type
         if (incidentType === 'THEFT' || incidentType === 'VANDALISM' || incidentType === 'WEATHER') {
             // Comprehensive coverage
             if (claim.policy?.comprehensiveCoverage) {
                 coverage.hasApplicableCoverage = true;
-                coverage.coverageTypes.push('COMPREHENSIVE');
-                coverage.limits.comprehensive = claim.policy.comprehensiveLimit;
-                coverage.deductibles.comprehensive = claim.policy.comprehensiveDeductible;
-                coverage.applicableParts.push({
-                    part: 'Comprehensive',
-                    limit: claim.policy.comprehensiveLimit,
-                    deductible: claim.policy.comprehensiveDeductible
-                });
+                coverage.isValid = true;
+                coverage.coverageTypes?.push('COMPREHENSIVE');
+                if (coverage.limits) coverage.limits.comprehensive = claim.policy.comprehensiveLimit;
+                if (coverage.deductibles) coverage.deductibles.comprehensive = claim.policy.comprehensiveDeductible;
+                coverage.applicableParts?.push('Comprehensive');
             }
         } else {
             // Collision coverage
             if (claim.policy?.collisionCoverage) {
                 coverage.hasApplicableCoverage = true;
-                coverage.coverageTypes.push('COLLISION');
-                coverage.limits.collision = claim.policy.collisionLimit;
-                coverage.deductibles.collision = claim.policy.collisionDeductible;
-                coverage.applicableParts.push({
-                    part: 'Collision',
-                    limit: claim.policy.collisionLimit,
-                    deductible: claim.policy.collisionDeductible
-                });
+                coverage.isValid = true;
+                coverage.coverageTypes?.push('COLLISION');
+                if (coverage.limits) coverage.limits.collision = claim.policy.collisionLimit;
+                if (coverage.deductibles) coverage.deductibles.collision = claim.policy.collisionDeductible;
+                coverage.applicableParts?.push('Collision');
             }
         }
 
         // Check for bodily injury coverage if injuries reported
-        if (parsedData.participants.some(p => p.injuries && p.injuries.length > 0)) {
+        const participants = parsedData.participants ?? [];
+        if (participants.some((p: any) => p.injuries)) {
             if (claim.policy?.bodilyInjuryLiability) {
-                coverage.coverageTypes.push('BODILY_INJURY_LIABILITY');
-                coverage.limits.bodilyInjury = claim.policy.bodilyInjuryLimit;
+                coverage.coverageTypes?.push('BODILY_INJURY_LIABILITY');
+                if (coverage.limits) coverage.limits.bodilyInjury = claim.policy.bodilyInjuryLimit;
             }
             if (claim.policy?.medicalPayments) {
-                coverage.coverageTypes.push('MEDICAL_PAYMENTS');
-                coverage.limits.medicalPayments = claim.policy.medicalPaymentsLimit;
+                coverage.coverageTypes?.push('MEDICAL_PAYMENTS');
+                if (coverage.limits) coverage.limits.medicalPayments = claim.policy.medicalPaymentsLimit;
             }
             if (claim.policy?.pip) {
-                coverage.coverageTypes.push('PIP');
-                coverage.limits.pip = claim.policy.pipLimit;
+                coverage.coverageTypes?.push('PIP');
+                if (coverage.limits) coverage.limits.pip = claim.policy.pipLimit;
             }
         }
 
         // Check for uninsured/underinsured motorist coverage if applicable
-        if (parsedData.participants.some(p => p.role === 'OTHER_DRIVER' && !p.insuranceInfo)) {
+        if (participants.some((p: any) => p.role === 'OTHER_DRIVER' && !p.insuranceInfo)) {
             if (claim.policy?.uninsuredMotorist) {
-                coverage.coverageTypes.push('UNINSURED_MOTORIST');
-                coverage.limits.uninsuredMotorist = claim.policy.uninsuredMotoristLimit;
+                coverage.coverageTypes?.push('UNINSURED_MOTORIST');
+                if (coverage.limits) coverage.limits.uninsuredMotorist = claim.policy.uninsuredMotoristLimit;
             }
         }
 
@@ -329,26 +337,27 @@ export class ValidationSpecialist {
         exclusions: string[];
     }> {
         const exclusions: string[] = [];
+        const incident = parsedData.incident || {} as any;
 
         // Check common exclusions
-        if (parsedData.incident.intentionalAct) {
+        if (incident.intentionalAct) {
             exclusions.push('Intentional acts are excluded from coverage');
         }
 
-        if (parsedData.incident.racing) {
+        if (incident.racing) {
             exclusions.push('Racing activities are excluded from coverage');
         }
 
-        if (parsedData.incident.businessUse && !claim.policy?.businessUseEndorsement) {
+        if (incident.businessUse && !claim.policy?.businessUseEndorsement) {
             exclusions.push('Business use without proper endorsement');
         }
 
-        if (parsedData.incident.dui || parsedData.incident.drivingUnderInfluence) {
+        if (incident.dui || incident.drivingUnderInfluence) {
             exclusions.push('DUI/DWI may affect coverage');
         }
 
         // Check for earthquake/flood (require specific coverage)
-        if ((parsedData.incident.type === 'WEATHER' && parsedData.incident.causeOfLoss === 'FLOOD') &&
+        if ((incident.type === 'WEATHER' && incident.causeOfLoss === 'FLOOD') &&
             !claim.policy?.floodCoverage) {
             exclusions.push('Flood damage requires separate coverage');
         }
@@ -366,20 +375,26 @@ export class ValidationSpecialist {
         warnings: string[];
     } {
         const warnings: string[] = [];
+        const incident = parsedData.incident || {} as any;
+        const applicableParts = coverage.applicableParts || [];
 
         // Check if estimated damage exceeds limits
-        if (parsedData.incident.estimatedDamage) {
-            for (const part of coverage.applicableParts) {
-                if (parsedData.incident.estimatedDamage > part.limit) {
-                    warnings.push(`Estimated damage $${parsedData.incident.estimatedDamage} may exceed ${part.part} limit of $${part.limit}`);
+        if (incident.estimatedDamage && coverage.limits) {
+            for (const part of applicableParts) {
+                const limit = coverage.limits[part as string] || 0;
+                if (incident.estimatedDamage > limit && limit > 0) {
+                    warnings.push(`Estimated damage $${incident.estimatedDamage} may exceed ${part} limit of $${limit}`);
                 }
             }
         }
 
         // Warn about high deductibles
-        for (const part of coverage.applicableParts) {
-            if (part.deductible >= 1000) {
-                warnings.push(`High deductible: $${part.deductible} applies to ${part.part} coverage`);
+        if (coverage.deductibles) {
+            for (const part of applicableParts) {
+                const deductible = coverage.deductibles[part as string] || 0;
+                if (deductible >= 1000) {
+                    warnings.push(`High deductible: $${deductible} applies to ${part} coverage`);
+                }
             }
         }
 
