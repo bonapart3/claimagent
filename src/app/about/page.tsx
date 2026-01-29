@@ -75,23 +75,23 @@ export default function AboutPage() {
                 50-state regulatory compliance.
               </p>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                The result? Claims resolved in hours instead of weeks. Fraud caught before
-                payment. Adjusters empowered to handle complex cases that need human judgment.
+                Our goal: claims resolved in hours instead of weeks. Fraud caught before
+                payment. Adjusters empowered to focus on complex cases that need human judgment.
               </p>
             </div>
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 text-white">
               <div className="space-y-6">
                 <div>
-                  <div className="text-4xl font-bold">70%</div>
-                  <div className="text-amber-200">Faster claim resolution</div>
-                </div>
-                <div>
-                  <div className="text-4xl font-bold">84%</div>
-                  <div className="text-amber-200">Reduction in processing costs</div>
-                </div>
-                <div>
                   <div className="text-4xl font-bold">50</div>
-                  <div className="text-amber-200">States with full compliance</div>
+                  <div className="text-amber-200">State regulations built in</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-bold">12+</div>
+                  <div className="text-amber-200">Specialized AI agents</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-bold">&lt;1hr</div>
+                  <div className="text-amber-200">Target FNOL-to-decision</div>
                 </div>
               </div>
             </div>

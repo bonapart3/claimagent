@@ -14,7 +14,9 @@
       "Bash(railway login:*)",
       "Bash(railway up:*)",
       "Bash(railway logs:*)",
-      "WebFetch(domain:www.claimagent.io)"
+      "WebFetch(domain:www.claimagent.io)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase:*)"
     ]
   }
 }

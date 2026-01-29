@@ -8,102 +8,14 @@ import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
 
-// Realistic carrier logos with proper styling
-const carriers = [
-  { name: 'SafeGuard Insurance', logo: 'SafeGuard' },
-  { name: 'Liberty Mutual', logo: 'Liberty' },
-  { name: 'National Auto', logo: 'National' },
-  { name: 'Premier Claims', logo: 'Premier' },
-  { name: 'Coastal Insurance', logo: 'Coastal' },
+const techStack = [
+  { name: 'Next.js', logo: 'N' },
+  { name: 'Prisma', logo: 'P' },
+  { name: 'Claude AI', logo: 'AI' },
+  { name: 'Vercel', logo: 'V' },
+  { name: 'Cloudflare', logo: 'CF' },
 ];
 
-// Testimonials data
-const testimonials = [
-  {
-    quote: "ClaimAgent reduced our average claim cycle time from 14 days to under 48 hours. The fraud detection alone has saved us millions.",
-    author: "Sarah Mitchell",
-    title: "VP of Claims Operations",
-    company: "Pacific Insurance Group",
-    avatar: "SM",
-  },
-  {
-    quote: "We processed 3x more claims with the same team size. The AI handles the routine cases so our adjusters can focus on complex claims.",
-    author: "David Chen",
-    title: "Chief Operations Officer",
-    company: "Midwest Auto Insurance",
-    avatar: "DC",
-  },
-  {
-    quote: "The 50-state compliance feature alone justified the investment. We expanded to 12 new states without hiring additional compliance staff.",
-    author: "Jennifer Rodriguez",
-    title: "Director of Compliance",
-    company: "Heritage Insurance Co.",
-    avatar: "JR",
-  },
-];
-
-// Stats data for animated counters
-const stats = [
-  { value: 70, suffix: '%', label: 'Faster Processing' },
-  { value: 84, suffix: '%', label: 'Cost Reduction' },
-  { value: 50, suffix: '', label: 'State Compliant' },
-  { value: 80, suffix: '%+', label: 'Auto-Approval Rate' },
-];
-
-// Animated counter hook
-function useCountUp(end: number, duration: number = 2000, startOnView: boolean = true) {
-  const [count, setCount] = useState(0);
-  const [hasStarted, setHasStarted] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!startOnView) {
-      setHasStarted(true);
-    }
-  }, [startOnView]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !hasStarted) {
-          setHasStarted(true);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasStarted]);
-
-  useEffect(() => {
-    if (!hasStarted) return;
-
-    let startTime: number;
-    let animationFrame: number;
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-
-      // Easing function for smooth animation
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      setCount(Math.floor(easeOutQuart * end));
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [end, duration, hasStarted]);
-
-  return { count, ref };
-}
 
 // Fade-in on scroll hook
 function useFadeInOnScroll() {
@@ -130,26 +42,10 @@ function useFadeInOnScroll() {
   return { ref, isVisible };
 }
 
-// Animated stat component
-function AnimatedStat({ value, suffix, label }: { value: number; suffix: string; label: string }) {
-  const { count, ref } = useCountUp(value, 2000);
-
-  return (
-    <div ref={ref}>
-      <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">
-        {count}{suffix}
-      </div>
-      <div className="mt-2 text-gray-600 dark:text-gray-400">{label}</div>
-    </div>
-  );
-}
-
 export default function LandingPage() {
   const { userId, isLoaded } = useAuth();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-
   // Fade-in refs for each section
   const socialProof = useFadeInOnScroll();
   const productPreview = useFadeInOnScroll();
@@ -165,14 +61,6 @@ export default function LandingPage() {
       router.push('/dashboard');
     }
   }, [isLoaded, userId, router]);
-
-  // Auto-rotate testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="min-h-screen">
@@ -293,7 +181,7 @@ export default function LandingPage() {
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            Trusted by 200+ insurance carriers nationwide
+            Autonomous claims processing for P&amp;C carriers
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white tracking-tight leading-[1.1]">
@@ -355,7 +243,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Social Proof - Trusted By */}
+      {/* Built With */}
       <section
         ref={socialProof.ref as React.RefObject<HTMLElement>}
         className={`py-16 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 transition-all duration-700 ${
@@ -364,18 +252,16 @@ export default function LandingPage() {
       >
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <p className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 mb-8 uppercase tracking-wider">
-            Trusted by leading insurance carriers
+            Built with modern infrastructure
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            {carriers.map((carrier, index) => (
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+            {techStack.map((tech) => (
               <div
-                key={carrier.name}
-                className="group relative px-6 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 hover:-translate-y-1"
-                style={{ animationDelay: `${index * 100}ms` }}
+                key={tech.name}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800"
               >
-                <span className="text-lg font-semibold text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
-                  {carrier.logo}
-                </span>
+                <span className="text-lg font-bold text-gray-400 dark:text-gray-500">{tech.logo}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">{tech.name}</span>
               </div>
             ))}
           </div>
@@ -634,79 +520,65 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section with Animated Counters */}
+      {/* Platform Capabilities */}
       <section
         ref={statsSection.ref as React.RefObject<HTMLElement>}
-        className={`py-24 bg-white dark:bg-gray-950 transition-all duration-700 ${
+        className={`py-24 bg-gray-50 dark:bg-gray-900 transition-all duration-700 ${
           statsSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
+          <p className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 mb-12 uppercase tracking-wider">
+            Platform capabilities
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {stats.map((stat, index) => (
-              <AnimatedStat key={index} value={stat.value} suffix={stat.suffix} label={stat.label} />
-            ))}
+            <div>
+              <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">50</div>
+              <div className="mt-2 text-gray-600 dark:text-gray-400">State Regulations Built In</div>
+            </div>
+            <div>
+              <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">24/7</div>
+              <div className="mt-2 text-gray-600 dark:text-gray-400">Autonomous Processing</div>
+            </div>
+            <div>
+              <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">12+</div>
+              <div className="mt-2 text-gray-600 dark:text-gray-400">AI Agent Specialists</div>
+            </div>
+            <div>
+              <div className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white">&lt;1hr</div>
+              <div className="mt-2 text-gray-600 dark:text-gray-400">Target FNOL-to-Decision</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Carousel */}
+      {/* Early Access CTA */}
       <section
         ref={testimonialSection.ref as React.RefObject<HTMLElement>}
-        className={`py-20 bg-gray-50 dark:bg-gray-900 transition-all duration-700 ${
+        className={`py-20 bg-white dark:bg-gray-950 transition-all duration-700 ${
           testimonialSection.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
         <div className="max-w-4xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-              Loved by Claims Teams
-            </h2>
-            <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-              See what industry leaders are saying about ClaimAgent
-            </p>
-          </div>
-
-          <div className="relative">
-            {/* Testimonial Card */}
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 md:p-12 text-white">
-              <svg className="w-12 h-12 mb-6 text-amber-500 opacity-80" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 md:p-12 text-white text-center">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-
-              <div className="min-h-[120px]">
-                <blockquote className="text-xl md:text-2xl font-light leading-relaxed mb-6 transition-opacity duration-500">
-                  &ldquo;{testimonials[currentTestimonial].quote}&rdquo;
-                </blockquote>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-slate-900">
-                  {testimonials[currentTestimonial].avatar}
-                </div>
-                <div>
-                  <div className="font-semibold text-white">{testimonials[currentTestimonial].author}</div>
-                  <div className="text-amber-400">{testimonials[currentTestimonial].title}</div>
-                  <div className="text-slate-400 text-sm">{testimonials[currentTestimonial].company}</div>
-                </div>
-              </div>
             </div>
-
-            {/* Testimonial Indicators */}
-            <div className="flex justify-center gap-2 mt-6">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === currentTestimonial
-                      ? 'bg-amber-500 w-8'
-                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-                  }`}
-                  aria-label={`View testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
+            <h3 className="text-2xl md:text-3xl font-bold mb-4">
+              Be a Founding Partner
+            </h3>
+            <p className="text-lg text-slate-300 leading-relaxed mb-8 max-w-2xl mx-auto">
+              We&apos;re onboarding our first carriers now. Founding partners get hands-on
+              implementation support, priority feature requests, and early-adopter pricing locked in for life.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex px-8 py-4 rounded-xl bg-amber-500 text-white font-medium text-lg hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              Apply for Early Access
+            </Link>
           </div>
         </div>
       </section>
@@ -723,7 +595,7 @@ export default function LandingPage() {
             Ready to automate your claims?
           </h2>
           <p className="mt-6 text-xl text-gray-600 dark:text-gray-400">
-            Join 200+ carriers who trust ClaimAgent to process millions of claims.
+            Start processing claims faster with AI-powered automation.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
