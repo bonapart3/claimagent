@@ -117,6 +117,34 @@ export const CONFIDENCE_LEVELS = {
     VERY_HIGH: 0.95
 };
 
+// Alias for backward compatibility
+export const AUTO_APPROVAL_THRESHOLDS = AUTO_APPROVAL_THRESHOLD;
+
+// Financial thresholds for reserve and settlement agents
+export const FINANCIAL_THRESHOLDS = {
+    LOW_VALUE_CLAIM: 5000,
+    MEDIUM_VALUE_CLAIM: 25000,
+    HIGH_VALUE_CLAIM: 50000,
+    ESCALATION_THRESHOLD: 100000,
+    RESERVE_WARNING: 75000,
+    SETTLEMENT_AUTHORITY: {
+        AUTO: 2500,
+        ADJUSTER: 50000,
+        SUPERVISOR: 100000,
+        MANAGER: 250000,
+        EXECUTIVE: 500000
+    }
+};
+
+// Auto approval limits for severity scorer
+export const AUTO_APPROVAL_LIMITS = {
+    MAX_CLAIM_AMOUNT: 2500,
+    MAX_VEHICLE_AGE: 10,
+    MAX_COMPLEXITY_SCORE: 3,
+    MIN_CONFIDENCE: 0.80,
+    EXCLUDED_CLAIM_TYPES: ['BODILY_INJURY', 'FATALITY', 'LITIGATION']
+};
+
 export const STATE_NOTIFICATION_DEADLINES = {
     // Days to acknowledge claim
     ACKNOWLEDGMENT: {

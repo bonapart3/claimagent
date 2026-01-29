@@ -8,7 +8,7 @@ export interface Policy {
     namedInsured: string;
     effectiveDate: Date;
     expirationDate: Date;
-    status: 'active' | 'in_force' | 'cancelled' | 'expired' | 'pending';
+    status: 'active' | 'in_force' | 'cancelled' | 'expired' | 'pending' | 'ACTIVE' | 'CANCELLED' | 'SUSPENDED' | 'LAPSED' | 'EXPIRED';
     state: string;
     cancellationDate?: Date;
     nonPaymentFlag?: boolean;
@@ -38,6 +38,8 @@ export interface PolicyCoverage {
     limit: number;
     deductible?: number;
     included: boolean;
+    usedAmount?: number;
+    personalOnly?: boolean;
 }
 
 export type CoverageType =
@@ -48,7 +50,23 @@ export type CoverageType =
     | 'medical_payments'
     | 'pip'
     | 'rental'
-    | 'towing';
+    | 'towing'
+    // Uppercase variants for compatibility
+    | 'LIABILITY'
+    | 'COLLISION'
+    | 'COMPREHENSIVE'
+    | 'PROPERTY_DAMAGE'
+    | 'BODILY_INJURY'
+    | 'UNINSURED_MOTORIST'
+    | 'UNDERINSURED_MOTORIST'
+    | 'MEDICAL_PAYMENTS'
+    | 'PIP'
+    // Additional coverage types used by agents
+    | 'GLASS'
+    | 'RENTAL_REIMBURSEMENT'
+    | 'ROADSIDE_ASSISTANCE'
+    | 'GAP'
+    | 'NONE';
 
 export interface PolicyLimits {
     bodilyInjuryPerPerson: number;
@@ -58,10 +76,17 @@ export interface PolicyLimits {
     underinsuredMotorist?: number;
     medicalPayments?: number;
     pip?: number;
+    // Additional fields for coverage calculator
+    perOccurrence?: number;
+    aggregate?: number;
+    usedAggregate?: number;
 }
 
 export interface PolicyDeductibles {
     collision?: number;
     comprehensive?: number;
 }
+
+// Alias for backward compatibility with agent imports
+export type Coverage = PolicyCoverage;
 

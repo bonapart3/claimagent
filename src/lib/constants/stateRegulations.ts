@@ -34,6 +34,26 @@ export interface StateRegulation {
     umUimRequired: boolean;
     pipRequired: boolean;
     lastUpdated: string; // ISO date string
+    // Additional fields for handbook helper compatibility
+    totalLossStatute?: string;
+    effectiveDate?: string;
+    doiWebsite?: string;
+    paymentDeadlineDays?: number;
+    interestRate?: number;
+    paymentStatute?: string;
+    // Additional fields for checklist manager and liability analyst
+    timeRequirements?: {
+        acknowledgment?: number;
+        investigation?: number;
+        decision?: number;
+        payment?: number;
+    };
+    totalLossRules?: {
+        threshold: number;
+        formula: string;
+        salvageRetention: boolean;
+    };
+    specificRequirements?: string[];
 }
 
 export interface NoticeRequirement {
@@ -712,4 +732,17 @@ export class StateRegulationsService {
 }
 
 export default StateRegulationsService;
+
+// Convenience functions for direct import
+export function getStateRegulation(stateCode: string): StateRegulation | null {
+    return StateRegulationsService.getStateRegulations(stateCode);
+}
+
+export function getTotalLossThreshold(stateCode: string): number {
+    const regulation = StateRegulationsService.getStateRegulations(stateCode);
+    return regulation?.totalLossThreshold ?? 75; // Default to 75% if state not found
+}
+
+// Alias for backward compatibility
+export const stateRegulations = STATE_REGULATIONS;
 
