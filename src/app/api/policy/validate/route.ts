@@ -33,9 +33,12 @@ export async function POST(request: NextRequest) {
 
         const { policyNumber, lossDate, coverageType } = validation.data;
 
-        // Find policy
+        // Find policy with coverages
         const policy = await prisma.policy.findUnique({
-            where: { policyNumber }
+            where: { policyNumber },
+            include: {
+                coverages: true,
+            }
         });
 
         if (!policy) {
@@ -75,13 +78,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate coverage type
-        const coverages = policy.coverages as Record<string, any>;
         let coverageValid = true;
         let coverageDetails = {};
 
-        if (coverageType) {
-            const coverage = coverages[coverageType];
-            if (!coverage || !coverage.included) {
+        if (coverageType && policy.coverages) {
+            const coverage = policy.coverages.find(c => c.type === coverageType);
+            if (!coverage) {
                 coverageValid = false;
                 coverageDetails = {
                     requestedCoverage: coverageType,
@@ -91,22 +93,33 @@ export async function POST(request: NextRequest) {
                 coverageDetails = {
                     requestedCoverage: coverageType,
                     available: true,
-                    limit: coverage.limit,
+                    limitPerPerson: coverage.limitPerPerson,
+                    limitPerAccident: coverage.limitPerAccident,
+                    limitProperty: coverage.limitProperty,
                     deductible: coverage.deductible
                 };
             }
         }
+
+        // Format coverages for response
+        const coveragesFormatted = policy.coverages.map(c => ({
+            type: c.type,
+            limitPerPerson: c.limitPerPerson,
+            limitPerAccident: c.limitPerAccident,
+            limitProperty: c.limitProperty,
+            deductible: c.deductible,
+        }));
 
         return NextResponse.json({
             success: true,
             valid: coverageValid,
             policy: {
                 policyNumber: policy.policyNumber,
-                policyholderName: policy.policyholderName,
+                policyholderName: `${policy.holderFirstName} ${policy.holderLastName}`,
                 effectiveDate: policy.effectiveDate,
                 expirationDate: policy.expirationDate,
                 status: policy.status,
-                coverages: policy.coverages
+                coverages: coveragesFormatted
             },
             coverageDetails
         });
@@ -119,4 +132,3 @@ export async function POST(request: NextRequest) {
         );
     }
 }
-

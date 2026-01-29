@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
                 lastName: true,
                 role: true,
                 passwordHash: true,
-                active: true,
+                isActive: true,
             },
         });
 
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!user.active) {
+        if (!user.isActive) {
             return NextResponse.json(
                 { success: false, error: 'Account is disabled' },
                 { status: 403 }
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
         // Store session
-        await prisma.userSession.create({
+        await prisma.session.create({
             data: {
                 userId: user.id,
                 token: sessionToken,

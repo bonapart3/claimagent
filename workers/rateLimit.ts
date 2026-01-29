@@ -17,8 +17,8 @@ const DEFAULT_CONFIG: RateLimitConfig = {
 };
 
 export class RateLimiter {
-  private cache: KVNamespace;
-  private config: RateLimitConfig;
+  protected cache: KVNamespace;
+  protected config: RateLimitConfig;
 
   constructor(cache: KVNamespace, config: Partial<RateLimitConfig> = {}) {
     this.cache = cache;

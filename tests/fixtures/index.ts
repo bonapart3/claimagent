@@ -205,7 +205,7 @@ export const testClaims = {
     policeReportNum: '2024-LA-001234',
     weatherConditions: 'Clear',
     claimType: 'COLLISION' as const,
-    lossType: ['PROPERTY_DAMAGE'] as const[],
+    lossType: ['PROPERTY_DAMAGE'] as const,
     severity: 'LOW' as const,
     status: 'SUBMITTED' as const,
     estimatedAmount: 150000, // $1,500
@@ -229,7 +229,7 @@ export const testClaims = {
     policeReportNum: '2024-SF-005678',
     weatherConditions: 'Rain',
     claimType: 'COLLISION' as const,
-    lossType: ['PROPERTY_DAMAGE', 'BODILY_INJURY'] as const[],
+    lossType: ['PROPERTY_DAMAGE', 'BODILY_INJURY'] as const,
     severity: 'HIGH' as const,
     status: 'UNDER_REVIEW' as const,
     estimatedAmount: 2500000, // $25,000
@@ -254,7 +254,7 @@ export const testClaims = {
     policeReportNum: null,
     weatherConditions: 'Unknown',
     claimType: 'COMPREHENSIVE' as const,
-    lossType: ['PROPERTY_DAMAGE', 'VANDALISM'] as const[],
+    lossType: ['PROPERTY_DAMAGE', 'VANDALISM'] as const,
     severity: 'MEDIUM' as const,
     status: 'INVESTIGATION' as const,
     estimatedAmount: 800000, // $8,000
@@ -279,7 +279,7 @@ export const testClaims = {
     policeReportNum: '2024-TX-009012',
     weatherConditions: 'Clear',
     claimType: 'TOTAL_LOSS' as const,
-    lossType: ['PROPERTY_DAMAGE'] as const[],
+    lossType: ['PROPERTY_DAMAGE'] as const,
     severity: 'CATASTROPHIC' as const,
     status: 'UNDER_REVIEW' as const,
     estimatedAmount: 4500000, // $45,000
@@ -303,7 +303,7 @@ export const testClaims = {
     policeReportNum: null,
     weatherConditions: 'Sunny',
     claimType: 'COMPREHENSIVE' as const,
-    lossType: ['PROPERTY_DAMAGE'] as const[],
+    lossType: ['PROPERTY_DAMAGE'] as const,
     severity: 'LOW' as const,
     status: 'SUBMITTED' as const,
     estimatedAmount: 85000, // $850 - under $2,500 threshold

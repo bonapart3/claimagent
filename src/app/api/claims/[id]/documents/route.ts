@@ -5,11 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/utils/database';
 import { auditLog } from '@/lib/utils/auditLogger';
 import { validateSession } from '@/lib/utils/validation';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { randomUUID } from 'crypto';
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = [
     'image/jpeg',
@@ -52,7 +49,6 @@ export async function POST(
         const formData = await request.formData();
         const file = formData.get('file') as File;
         const documentType = formData.get('type') as string;
-        const description = formData.get('description') as string;
 
         if (!file) {
             return NextResponse.json(
@@ -77,30 +73,30 @@ export async function POST(
             );
         }
 
-        // Generate unique filename
+        // Generate storage URL (in production, upload to R2/S3)
         const fileExtension = file.name.split('.').pop();
         const uniqueFilename = `${randomUUID()}.${fileExtension}`;
-        const uploadPath = join(UPLOAD_DIR, claimId);
+        const storageUrl = `/uploads/${claimId}/${uniqueFilename}`;
 
-        // Create directory if not exists
-        await mkdir(uploadPath, { recursive: true });
+        // Import DocumentType from Prisma
+        const { DocumentType } = await import('@prisma/client');
 
-        // Save file
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const filePath = join(uploadPath, uniqueFilename);
-        await writeFile(filePath, buffer);
+        // Map document type to enum
+        const validTypes = Object.values(DocumentType);
+        const docType = validTypes.includes(documentType as typeof DocumentType[keyof typeof DocumentType])
+            ? documentType
+            : 'OTHER';
 
         // Create document record
         const document = await prisma.document.create({
             data: {
                 claimId,
                 fileName: file.name,
-                filePath,
+                storageUrl,
                 fileSize: file.size,
                 mimeType: file.type,
-                type: (documentType as any) || 'OTHER',
-                uploadedBy: session.userId,
+                type: docType as typeof DocumentType[keyof typeof DocumentType],
+                uploadedAt: new Date(),
             }
         });
 
@@ -109,16 +105,14 @@ export async function POST(
             claimId,
             userId: session.userId,
             action: 'DOCUMENT_UPLOADED',
+            entityType: 'Document',
+            entityId: document.id,
             details: {
                 documentId: document.id,
                 fileName: file.name,
-                type: documentType
+                type: docType
             },
-            ipAddress: request.headers.get('x-forwarded-for') || 'unknown'
         });
-
-        // TODO: Queue for OCR/IDP processing
-        // await queueOCRProcessing(document.id);
 
         return NextResponse.json({
             success: true,

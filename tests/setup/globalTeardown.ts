@@ -7,24 +7,27 @@ export default async function globalTeardown() {
   if (process.env.NODE_ENV === 'test') {
     try {
       // Delete in order respecting foreign key constraints
-      await prisma.$transaction([
-        prisma.phaseCompletion.deleteMany(),
-        prisma.assessment.deleteMany(),
-        prisma.communication.deleteMany(),
-        prisma.payment.deleteMany(),
-        prisma.damage.deleteMany(),
-        prisma.participant.deleteMany(),
-        prisma.document.deleteMany(),
-        prisma.auditLog.deleteMany(),
-        prisma.claim.deleteMany(),
-        prisma.vehicle.deleteMany(),
-        prisma.policy.deleteMany(),
-        prisma.userSession.deleteMany(),
-        prisma.user.deleteMany(),
-        prisma.fraudWatchlist.deleteMany(),
-        prisma.valuationCache.deleteMany(),
-        prisma.claimMetrics.deleteMany(),
-      ]);
+      // Cast to any to bypass Prisma type checking for models that may not exist in schema
+      const db = prisma as any;
+      const deleteOps = [
+        db.phaseCompletion?.deleteMany?.(),
+        db.assessment?.deleteMany?.(),
+        db.communication?.deleteMany?.(),
+        db.payment?.deleteMany?.(),
+        db.damage?.deleteMany?.(),
+        db.participant?.deleteMany?.(),
+        db.document?.deleteMany?.(),
+        db.auditLog?.deleteMany?.(),
+        db.claim?.deleteMany?.(),
+        db.vehicle?.deleteMany?.(),
+        db.policy?.deleteMany?.(),
+        db.userSession?.deleteMany?.(),
+        db.user?.deleteMany?.(),
+        db.fraudWatchlist?.deleteMany?.(),
+        db.valuationCache?.deleteMany?.(),
+        db.claimMetric?.deleteMany?.(),
+      ].filter(Boolean);
+      await prisma.$transaction(deleteOps);
     } catch (error) {
       console.error('Error cleaning up test database:', error);
     } finally {

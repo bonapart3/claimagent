@@ -21,6 +21,7 @@ describe('policyValidation.isPolicyActiveForDate', () => {
             collision: 500,
             comprehensive: 250,
         },
+        exclusions: [],
         createdAt: new Date('2025-01-01') as any,
         updatedAt: new Date('2025-01-01') as any,
     };

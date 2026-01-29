@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom';
 
 // Set test environment variables
-process.env.NODE_ENV = 'test';
+// Use Object.defineProperty to avoid read-only property error
+Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true });
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/claimagent_test';
 process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only';
 process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes-ok';

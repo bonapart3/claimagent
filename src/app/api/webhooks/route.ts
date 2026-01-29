@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
         // Log webhook receipt
         await auditLog({
-            claimId: body.data.claimId as string | null,
+            claimId: body.data.claimId as string | undefined,
             action: 'WEBHOOK_RECEIVED',
             agentId: 'WEBHOOK_HANDLER',
             description: `Received webhook: ${body.event} from ${webhookSource}`,
@@ -165,16 +165,32 @@ async function processPaymentWebhook(
     if (event === 'payment.issued') {
         // Update claim payment status
         const claimId = data.claimId as string;
-        const paymentId = data.paymentId as string;
         const amount = data.amount as number;
 
         if (claimId) {
+            // Update claim to PAYMENT_PROCESSING or CLOSED
             await prisma.claim.update({
                 where: { id: claimId },
                 data: {
-                    status: 'PAID',
-                    paymentId,
-                    paymentAmount: amount,
+                    status: 'PAYMENT_PROCESSING',
+                    paidAmount: amount,
+                    settledAt: new Date(),
+                },
+            });
+
+            // Create/update settlement record
+            await prisma.settlement.upsert({
+                where: { claimId },
+                create: {
+                    claimId,
+                    totalPaid: amount,
+                    paymentMethod: 'ACH',
+                    paymentStatus: 'COMPLETED',
+                    paidAt: new Date(),
+                },
+                update: {
+                    totalPaid: amount,
+                    paymentStatus: 'COMPLETED',
                     paidAt: new Date(),
                 },
             });
@@ -184,7 +200,7 @@ async function processPaymentWebhook(
                 action: 'PAYMENT_CONFIRMED',
                 agentId: 'WEBHOOK_HANDLER',
                 description: `Payment confirmed: $${amount.toLocaleString()}`,
-                details: { paymentId, amount },
+                details: { amount },
             });
         }
 
@@ -205,12 +221,30 @@ async function processFraudWebhook(
         const indicators = data.indicators as string[];
 
         if (claimId) {
+            // Update claim with fraud score
+            const updateData: Record<string, unknown> = {
+                fraudScore: Math.round(fraudScore * 100), // Convert to 0-100 scale
+            };
+
+            // Escalate to SIU if high fraud score
+            if (fraudScore > 0.8) {
+                updateData.status = 'SUSPENDED';
+                updateData.routingDecision = 'SIU_ESCALATION';
+            }
+
             await prisma.claim.update({
                 where: { id: claimId },
+                data: updateData,
+            });
+
+            // Create fraud analysis record
+            await prisma.fraudAnalysis.create({
                 data: {
-                    fraudScore,
-                    fraudIndicators: indicators,
-                    status: fraudScore > 0.8 ? 'FLAGGED_FRAUD' : undefined,
+                    claimId,
+                    overallScore: Math.round(fraudScore * 100),
+                    riskLevel: fraudScore > 0.8 ? 'CRITICAL' : fraudScore > 0.5 ? 'HIGH' : 'MEDIUM',
+                    flaggedReasons: indicators,
+                    siuRecommendation: fraudScore > 0.8 ? 'Recommend SIU review' : null,
                 },
             });
 
@@ -242,9 +276,8 @@ async function processDocumentWebhook(
             await prisma.document.update({
                 where: { id: documentId },
                 data: {
-                    status: 'ANALYZED',
-                    analysisResult,
-                    analyzedAt: new Date(),
+                    aiAnalysis: analysisResult as object,
+                    ocrConfidence: analysisResult?.confidence as number | undefined,
                 },
             });
         }
@@ -254,4 +287,3 @@ async function processDocumentWebhook(
 
     return { action: 'unknown_event', status: 'ignored' };
 }
-

@@ -1,12 +1,9 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { ClaimStatus } from '@prisma/client';
 import { z } from 'zod';
 import { validateSession } from '@/lib/utils/validation';
 import { auditLog } from '@/lib/utils/auditLogger';
 import { prisma } from '@/lib/utils/database';
-
-// Using shared prisma client
 
 const StatusUpdateSchema = z.object({
     status: z.nativeEnum(ClaimStatus),
@@ -42,15 +39,27 @@ export async function POST(
         // Previous status
         const previousStatus = claim.status;
 
+        // Build update data based on new status
+        const updateData: Record<string, unknown> = {
+            status,
+            updatedAt: new Date(),
+        };
+
+        // Set timestamps based on status transitions
+        if (status === ClaimStatus.INVESTIGATION && !claim.acknowledgedAt) {
+            updateData.acknowledgedAt = new Date();
+        }
+        if (status === ClaimStatus.CLOSED && !claim.closedAt) {
+            updateData.closedAt = new Date();
+        }
+        if (status === ClaimStatus.APPROVED && !claim.settledAt) {
+            updateData.settledAt = new Date();
+        }
+
         // Update claim status
         const updatedClaim = await prisma.claim.update({
             where: { id: claimId },
-            data: {
-                status,
-                updatedAt: new Date(),
-                ...(status === ClaimStatus.ACKNOWLEDGED && { acknowledgedAt: new Date() }),
-                ...(status === ClaimStatus.CLOSED && { closedAt: new Date() }),
-            },
+            data: updateData,
         });
 
         // Audit log
@@ -58,6 +67,8 @@ export async function POST(
             userId: session.userId,
             action: 'STATUS_CHANGED',
             claimId,
+            entityType: 'Claim',
+            entityId: claimId,
             details: { from: previousStatus, to: status, reason, metadata },
         });
 
@@ -113,8 +124,8 @@ export async function GET(
                 claimNumber: true,
                 status: true,
                 routingDecision: true,
-                autoApproved: true,
-                submittedAt: true,
+                autoApprovalEligible: true,
+                reportedDate: true,
                 acknowledgedAt: true,
                 closedAt: true,
             },
@@ -129,9 +140,9 @@ export async function GET(
             status: claim.status,
             claimNumber: claim.claimNumber,
             routingDecision: claim.routingDecision,
-            autoApproved: claim.autoApproved,
+            autoApprovalEligible: claim.autoApprovalEligible,
             timeline: {
-                submitted: claim.submittedAt,
+                reported: claim.reportedDate,
                 acknowledged: claim.acknowledgedAt,
                 closed: claim.closedAt,
             },

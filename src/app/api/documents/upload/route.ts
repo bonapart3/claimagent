@@ -7,6 +7,7 @@ import { auditLog } from '@/lib/utils/auditLogger';
 import { validateFormData, performSecurityChecks } from '@/lib/utils/requestValidator';
 import { DocumentUploadMetadataSchema } from '@/lib/schemas/api';
 import { validateSession } from '@/lib/utils/validation';
+import { DocumentType } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
     try {
@@ -117,21 +118,24 @@ export async function POST(request: NextRequest) {
         // Generate storage key
         const timestamp = Date.now();
         const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const storageKey = `claims/${claimId}/${timestamp}-${sanitizedName}`;
+        const storageUrl = `claims/${claimId}/${timestamp}-${sanitizedName}`;
+
+        // Map document type to enum
+        const validTypes = Object.values(DocumentType);
+        const docType: DocumentType = validTypes.includes(documentType as DocumentType)
+            ? (documentType as DocumentType)
+            : 'OTHER';
 
         // Create document record
         const document = await prisma.document.create({
             data: {
                 claimId,
-                type: documentType || 'OTHER',
+                type: docType,
                 fileName: file.name,
                 mimeType: file.type,
-                size: file.size,
-                storageKey,
-                hash: fileHash,
-                description: description || undefined,
+                fileSize: file.size,
+                storageUrl,
                 uploadedAt: new Date(),
-                status: 'PENDING_ANALYSIS',
             },
         });
 
@@ -139,18 +143,15 @@ export async function POST(request: NextRequest) {
         await auditLog({
             claimId,
             action: 'DOCUMENT_UPLOADED',
-            agentId: 'SYSTEM',
-            description: `Document uploaded: ${file.name}`,
+            entityType: 'Document',
+            entityId: document.id,
             details: {
                 documentId: document.id,
-                type: documentType,
-                size: file.size,
+                type: docType,
+                fileSize: file.size,
                 mimeType: file.type,
             },
         });
-
-        // Trigger document analysis (in production, this would be async)
-        // await analyzeDocument(document.id);
 
         return NextResponse.json({
             success: true,
@@ -158,9 +159,8 @@ export async function POST(request: NextRequest) {
                 id: document.id,
                 fileName: document.fileName,
                 type: document.type,
-                size: document.size,
+                fileSize: document.fileSize,
                 url: `/api/documents/${document.id}`,
-                status: document.status,
             },
         });
     } catch (error) {
@@ -209,11 +209,9 @@ export async function GET(request: NextRequest) {
                 type: true,
                 fileName: true,
                 mimeType: true,
-                size: true,
-                description: true,
+                fileSize: true,
                 uploadedAt: true,
-                status: true,
-                analysisResult: true,
+                aiAnalysis: true,
             },
         });
 
@@ -232,4 +230,3 @@ export async function GET(request: NextRequest) {
         );
     }
 }
-

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Find valid session
-        const session = await prisma.userSession.findFirst({
+        const session = await prisma.session.findFirst({
             where: {
                 token: sessionToken,
                 expiresAt: { gt: new Date() },
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
                         firstName: true,
                         lastName: true,
                         role: true,
-                        active: true,
+                        isActive: true,
                     },
                 },
             },
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
             }, { status: 401 });
         }
 
-        if (!session.user.active) {
+        if (!session.user.isActive) {
             cookieStore.delete('session');
             return NextResponse.json({
                 success: false,
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
         if (daysUntilExpiry < 3) {
             const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-            await prisma.userSession.update({
+            await prisma.session.update({
                 where: { id: session.id },
                 data: { expiresAt: newExpiry },
             });

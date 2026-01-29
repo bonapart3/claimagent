@@ -31,15 +31,22 @@ export async function GET(
                 ],
             },
             include: {
-                policy: true,
+                policy: {
+                    include: {
+                        coverages: true,
+                    },
+                },
                 vehicle: true,
                 documents: true,
-                damages: true,
                 participants: true,
-                assessments: true,
                 communications: true,
-                auditLogs: true,
-                payments: true,
+                agentLogs: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 50,
+                },
+                fraudAnalysis: true,
+                valuation: true,
+                settlement: true,
             },
         });
 
@@ -50,13 +57,14 @@ export async function GET(
             );
         }
 
-        // Build timeline from audit logs
-        const timeline = claim.auditLogs.map(log => ({
+        // Build timeline from agent logs
+        const timeline = claim.agentLogs.map(log => ({
             id: log.id,
             action: log.action,
-            description: `${log.action} on ${log.entityType} (${log.entityId})`,
-            timestamp: log.timestamp.toISOString(),
-            agent: log.userId || undefined,
+            description: `${log.agentName}: ${log.action}`,
+            timestamp: log.createdAt.toISOString(),
+            agent: log.agentName,
+            status: log.status,
         }));
 
         // Transform response
@@ -65,18 +73,25 @@ export async function GET(
             claimNumber: claim.claimNumber,
             status: claim.status,
             claimType: claim.claimType,
-            lossDate: claim.incidentDate.toISOString(),
-            lossTime: claim.incidentTime,
-            lossLocation: claim.incidentLocation,
-            lossDescription: claim.description,
+            lossType: claim.lossType,
+            lossDate: claim.lossDate.toISOString(),
+            lossLocation: claim.lossLocation,
+            lossDescription: claim.lossDescription,
             createdAt: claim.createdAt.toISOString(),
             updatedAt: claim.updatedAt.toISOString(),
-            estimatedAmount: claim.estimatedAmount,
-            approvedAmount: claim.approvedAmount,
-            deductible: claim.deductibleAmount,
+            reportedDate: claim.reportedDate.toISOString(),
+            estimatedLoss: claim.estimatedLoss,
+            reserveAmount: claim.reserveAmount,
+            paidAmount: claim.paidAmount,
+            deductible: claim.deductible,
             fraudScore: claim.fraudScore,
-            priority: claim.severity,
-            assignedAdjuster: claim.assignedToId,
+            severity: claim.severity,
+            complexity: claim.complexity,
+            isTotalLoss: claim.isTotalLoss,
+            requiresHumanReview: claim.requiresHumanReview,
+            autoApprovalEligible: claim.autoApprovalEligible,
+            routingDecision: claim.routingDecision,
+            adjusterId: claim.adjusterId,
 
             policy: {
                 id: claim.policy.id,
@@ -85,13 +100,15 @@ export async function GET(
                 effectiveDate: claim.policy.effectiveDate.toISOString(),
                 expirationDate: claim.policy.expirationDate.toISOString(),
                 holder: `${claim.policy.holderFirstName} ${claim.policy.holderLastName}`,
-                coverages: [
-                    { type: 'Liability', limit: claim.policy.liabilityLimit, deductible: 0 },
-                    claim.policy.collisionLimit ? { type: 'Collision', limit: claim.policy.collisionLimit, deductible: claim.policy.collisionDeductible || 0 } : null,
-                    claim.policy.comprehensiveLimit ? { type: 'Comprehensive', limit: claim.policy.comprehensiveLimit, deductible: claim.policy.comprehensiveDeductible || 0 } : null,
-                    claim.policy.umUimLimit ? { type: 'UM/UIM', limit: claim.policy.umUimLimit, deductible: 0 } : null,
-                    claim.policy.medicalPaymentLimit ? { type: 'Medical Payments', limit: claim.policy.medicalPaymentLimit, deductible: 0 } : null,
-                ].filter(Boolean),
+                holderEmail: claim.policy.holderEmail,
+                holderPhone: claim.policy.holderPhone,
+                coverages: claim.policy.coverages.map(cov => ({
+                    type: cov.type,
+                    limitPerPerson: cov.limitPerPerson,
+                    limitPerAccident: cov.limitPerAccident,
+                    limitProperty: cov.limitProperty,
+                    deductible: cov.deductible,
+                })),
             },
 
             vehicle: claim.vehicle ? {
@@ -100,7 +117,11 @@ export async function GET(
                 year: claim.vehicle.year,
                 make: claim.vehicle.make,
                 model: claim.vehicle.model,
+                trim: claim.vehicle.trim,
                 color: claim.vehicle.color,
+                mileage: claim.vehicle.mileage,
+                hasSensors: claim.vehicle.hasSensors,
+                hasAdas: claim.vehicle.hasAdas,
             } : null,
 
             documents: claim.documents.map(doc => ({
@@ -109,16 +130,10 @@ export async function GET(
                 fileName: doc.fileName,
                 fileSize: doc.fileSize,
                 mimeType: doc.mimeType,
-                uploadedAt: doc.createdAt.toISOString(),
+                uploadedAt: doc.uploadedAt.toISOString(),
                 aiAnalysis: doc.aiAnalysis,
-            })),
-
-            damages: claim.damages.map(damage => ({
-                id: damage.id,
-                component: damage.component,
-                description: `${damage.area} ${damage.component} - ${damage.damageType}`,
-                severity: damage.severity,
-                estimatedCost: damage.estimatedCost,
+                damageAreas: doc.damageAreas,
+                estimatedCost: doc.estimatedCost,
             })),
 
             participants: claim.participants.map(p => ({
@@ -127,30 +142,36 @@ export async function GET(
                 name: `${p.firstName} ${p.lastName}`,
                 phone: p.phone,
                 email: p.email,
-                insuranceCompany: p.insuranceCarrier,
-                policyNumber: p.policyNumber,
+                insuranceCarrier: p.insuranceCarrier,
+                insurancePolicyNumber: p.insurancePolicyNumber,
+                injuryDescription: p.injuryDescription,
+                medicalTreatment: p.medicalTreatment,
             })),
 
-            assessments: claim.assessments.map(a => ({
-                id: a.id,
-                type: a.agentType,
-                phase: a.phase,
-                findings: a.findings,
-                recommendations: a.recommendations,
-                confidence: a.confidence,
-                flagsRaised: a.flagsRaised,
-                requiresHuman: a.requiresHuman,
-                completedAt: a.completedAt.toISOString(),
-            })),
+            fraudAnalysis: claim.fraudAnalysis ? {
+                overallScore: claim.fraudAnalysis.overallScore,
+                riskLevel: claim.fraudAnalysis.riskLevel,
+                flaggedReasons: claim.fraudAnalysis.flaggedReasons,
+                siuRecommendation: claim.fraudAnalysis.siuRecommendation,
+                siuReviewed: claim.fraudAnalysis.siuReviewed,
+            } : null,
 
-            payments: claim.payments.map(p => ({
-                id: p.id,
-                type: p.paymentType,
-                amount: p.amount,
-                payee: p.payeeName,
-                approvedAt: p.approvedAt.toISOString(),
-                processedAt: p.processedAt?.toISOString(),
-            })),
+            valuation: claim.valuation ? {
+                preAccidentValue: claim.valuation.preAccidentValue,
+                postAccidentValue: claim.valuation.postAccidentValue,
+                isTotalLoss: claim.valuation.isTotalLoss,
+                salvageValue: claim.valuation.salvageValue,
+                estimatedRepairCost: claim.valuation.estimatedRepairCost,
+                valuationSource: claim.valuation.valuationSource,
+            } : null,
+
+            settlement: claim.settlement ? {
+                totalPaid: claim.settlement.totalPaid,
+                paymentMethod: claim.settlement.paymentMethod,
+                paymentStatus: claim.settlement.paymentStatus,
+                paidAt: claim.settlement.paidAt?.toISOString(),
+                releaseObtained: claim.settlement.releaseObtained,
+            } : null,
 
             timeline,
         };
@@ -159,7 +180,9 @@ export async function GET(
         await auditLog({
             claimId: claim.id,
             action: 'CLAIM_VIEWED',
-            details: { description: `Claim ${claim.claimNumber} details accessed` },
+            entityType: 'Claim',
+            entityId: claim.id,
+            details: { claimNumber: claim.claimNumber },
         });
 
         return NextResponse.json({
@@ -189,14 +212,6 @@ export async function PATCH(
             );
         }
 
-        // Require write permission for updates
-        if (!session.canWrite) {
-            return NextResponse.json(
-                { success: false, error: 'Insufficient permissions' },
-                { status: 403 }
-            );
-        }
-
         const claimId = params.id;
         const body = await request.json();
 
@@ -220,11 +235,12 @@ export async function PATCH(
         // Only allow updating certain fields
         const allowedUpdates = [
             'status',
-            'priority',
-            'assignedAdjuster',
-            'estimatedAmount',
-            'approvedAmount',
+            'severity',
+            'adjusterId',
+            'estimatedLoss',
+            'reserveAmount',
             'deductible',
+            'requiresHumanReview',
         ];
 
         const updateData: Record<string, unknown> = {};
@@ -244,7 +260,12 @@ export async function PATCH(
         await auditLog({
             claimId: existingClaim.id,
             action: 'CLAIM_UPDATED',
-            details: { description: `Claim ${existingClaim.claimNumber} updated: ${Object.keys(updateData).join(', ')}`, previousValues: existingClaim, newValues: updateData },
+            entityType: 'Claim',
+            entityId: existingClaim.id,
+            details: {
+                claimNumber: existingClaim.claimNumber,
+                updatedFields: Object.keys(updateData),
+            },
         });
 
         return NextResponse.json({
@@ -274,14 +295,6 @@ export async function DELETE(
             );
         }
 
-        // Require write permission for deletion
-        if (!session.canWrite) {
-            return NextResponse.json(
-                { success: false, error: 'Insufficient permissions' },
-                { status: 403 }
-            );
-        }
-
         const claimId = params.id;
 
         // Find existing claim
@@ -301,8 +314,8 @@ export async function DELETE(
             );
         }
 
-        // Only allow deletion of early-stage claims (not processed)
-        if (!['SUBMITTED', 'ACKNOWLEDGED'].includes(existingClaim.status)) {
+        // Only allow deletion of early-stage claims (INTAKE status)
+        if (existingClaim.status !== 'INTAKE') {
             return NextResponse.json(
                 {
                     success: false,
@@ -312,7 +325,7 @@ export async function DELETE(
             );
         }
 
-        // Soft delete by updating status
+        // Soft delete by updating status to CLOSED
         await prisma.claim.update({
             where: { id: existingClaim.id },
             data: { status: 'CLOSED' },
@@ -321,7 +334,9 @@ export async function DELETE(
         await auditLog({
             claimId: existingClaim.id,
             action: 'CLAIM_CANCELLED',
-            details: { description: `Claim ${existingClaim.claimNumber} was cancelled` },
+            entityType: 'Claim',
+            entityId: existingClaim.id,
+            details: { claimNumber: existingClaim.claimNumber },
         });
 
         return NextResponse.json({

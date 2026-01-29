@@ -13,13 +13,13 @@ export async function POST(request: NextRequest) {
 
         if (sessionToken) {
             // Find and delete session
-            const session = await prisma.userSession.findFirst({
+            const session = await prisma.session.findFirst({
                 where: { token: sessionToken },
                 include: { user: { select: { id: true, email: true } } },
             });
 
             if (session) {
-                await prisma.userSession.delete({
+                await prisma.session.delete({
                     where: { id: session.id },
                 });
 

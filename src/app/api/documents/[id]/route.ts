@@ -66,14 +66,15 @@ export async function GET(
                 claimNumber: document.claim?.claimNumber,
                 type: document.type,
                 fileName: document.fileName,
-                filePath: document.filePath,
+                storageUrl: document.storageUrl,
                 mimeType: document.mimeType,
                 fileSize: document.fileSize,
-                uploadedBy: document.uploadedBy,
+                uploadedAt: document.uploadedAt,
                 createdAt: document.createdAt,
-                extractedData: document.extractedData,
+                extractedText: document.extractedText,
                 aiAnalysis: document.aiAnalysis,
                 damageAreas: document.damageAreas,
+                estimatedCost: document.estimatedCost,
             },
         });
     } catch (error) {
@@ -134,7 +135,7 @@ export async function PATCH(
             action: 'DOCUMENT_UPDATED',
             entityType: 'Document',
             entityId: id,
-            changes: updates,
+            details: { updates },
         });
 
         return NextResponse.json({
@@ -188,7 +189,7 @@ export async function DELETE(
             action: 'DOCUMENT_DELETED',
             entityType: 'Document',
             entityId: id,
-            changes: { fileName: document.fileName },
+            details: { fileName: document.fileName },
         });
 
         return NextResponse.json({

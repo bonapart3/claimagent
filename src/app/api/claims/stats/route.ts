@@ -16,31 +16,31 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get basic stats
+        // Get basic stats using actual ClaimStatus enum values
         const [
             totalClaims,
             pendingClaims,
             approvedClaims,
-            paidClaims,
-            rejectedClaims,
+            closedClaims,
+            deniedClaims,
             fraudFlaggedClaims,
         ] = await Promise.all([
             prisma.claim.count(),
             prisma.claim.count({
                 where: {
-                    status: { in: ['SUBMITTED', 'UNDER_REVIEW', 'INVESTIGATION'] },
+                    status: { in: ['INTAKE', 'INVESTIGATION', 'EVALUATION', 'PENDING_APPROVAL'] },
                 },
             }),
             prisma.claim.count({ where: { status: 'APPROVED' } }),
-            prisma.claim.count({ where: { status: 'PAID' } }),
+            prisma.claim.count({ where: { status: 'CLOSED' } }),
             prisma.claim.count({ where: { status: 'DENIED' } }),
-            prisma.claim.count({ where: { status: 'ESCALATED_SIU' } }),
+            prisma.claim.count({ where: { fraudScore: { gte: 50 } } }),
         ]);
 
         // Calculate average processing time (from submission to resolution)
         const resolvedClaims = await prisma.claim.findMany({
             where: {
-                status: { in: ['APPROVED', 'PAID', 'DENIED'] },
+                status: { in: ['APPROVED', 'CLOSED', 'DENIED'] },
             },
             select: {
                 createdAt: true,
@@ -78,11 +78,11 @@ export async function GET(request: NextRequest) {
             _count: { id: true },
         });
 
-        // Get total amounts
+        // Get total amounts using correct field names
         const totals = await prisma.claim.aggregate({
             _sum: {
-                estimatedAmount: true,
-                approvedAmount: true,
+                estimatedLoss: true,
+                paidAmount: true,
             },
             _avg: {
                 fraudScore: true,
@@ -102,15 +102,14 @@ export async function GET(request: NextRequest) {
         // Calculate auto-approval rate
         const autoApprovedClaims = await prisma.claim.count({
             where: {
-                status: { in: ['APPROVED', 'PAID'] },
-                fraudScore: { lt: 0.3 },
-                estimatedAmount: { lt: 10000 },
+                status: { in: ['APPROVED', 'CLOSED'] },
+                autoApprovalEligible: true,
             },
         });
 
         const approvalRate =
             totalClaims > 0
-                ? (((approvedClaims + paidClaims) / totalClaims) * 100).toFixed(1)
+                ? (((approvedClaims + closedClaims) / totalClaims) * 100).toFixed(1)
                 : '0';
 
         return NextResponse.json({
@@ -119,8 +118,8 @@ export async function GET(request: NextRequest) {
                 totalClaims,
                 pendingClaims,
                 approvedClaims,
-                paidClaims,
-                rejectedClaims,
+                closedClaims,
+                deniedClaims,
                 fraudFlaggedClaims,
                 avgProcessingTime,
                 approvalRate: `${approvalRate}%`,
@@ -136,9 +135,9 @@ export async function GET(request: NextRequest) {
                 })),
 
                 financials: {
-                    totalEstimated: totals._sum.estimatedAmount || 0,
-                    totalApproved: totals._sum.approvedAmount || 0,
-                    avgFraudScore: totals._avg.fraudScore || 0,
+                    totalEstimated: totals._sum?.estimatedLoss || 0,
+                    totalPaid: totals._sum?.paidAmount || 0,
+                    avgFraudScore: totals._avg?.fraudScore || 0,
                 },
 
                 trends: {
@@ -158,4 +157,3 @@ export async function GET(request: NextRequest) {
         );
     }
 }
-

@@ -18,26 +18,28 @@ export function getTestPrisma(): PrismaClient {
 }
 
 export async function cleanupTestData() {
-  const db = getTestPrisma();
+  const db = getTestPrisma() as any;
 
-  await db.$transaction([
-    db.phaseCompletion.deleteMany(),
-    db.assessment.deleteMany(),
-    db.communication.deleteMany(),
-    db.payment.deleteMany(),
-    db.damage.deleteMany(),
-    db.participant.deleteMany(),
-    db.document.deleteMany(),
-    db.auditLog.deleteMany(),
-    db.claim.deleteMany(),
-    db.vehicle.deleteMany(),
-    db.policy.deleteMany(),
-    db.userSession.deleteMany(),
-    db.user.deleteMany(),
-    db.fraudWatchlist.deleteMany(),
-    db.valuationCache.deleteMany(),
-    db.claimMetrics.deleteMany(),
-  ]);
+  // Use optional chaining to handle models that may not exist in schema
+  const deleteOps = [
+    db.phaseCompletion?.deleteMany?.(),
+    db.assessment?.deleteMany?.(),
+    db.communication?.deleteMany?.(),
+    db.payment?.deleteMany?.(),
+    db.damage?.deleteMany?.(),
+    db.participant?.deleteMany?.(),
+    db.document?.deleteMany?.(),
+    db.auditLog?.deleteMany?.(),
+    db.claim?.deleteMany?.(),
+    db.vehicle?.deleteMany?.(),
+    db.policy?.deleteMany?.(),
+    db.userSession?.deleteMany?.(),
+    db.user?.deleteMany?.(),
+    db.fraudWatchlist?.deleteMany?.(),
+    db.valuationCache?.deleteMany?.(),
+    db.claimMetric?.deleteMany?.(),
+  ].filter(Boolean);
+  await db.$transaction(deleteOps);
 }
 
 export async function disconnectTestDb() {

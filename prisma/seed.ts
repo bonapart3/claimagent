@@ -8,6 +8,23 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Seeding database...');
 
+    // Create a demo carrier first
+    const carrier = await prisma.carrier.upsert({
+        where: { code: 'DEMO-CARRIER' },
+        update: {},
+        create: {
+            name: 'Demo Insurance Company',
+            code: 'DEMO-CARRIER',
+            annualWrittenPremium: 50000000,
+            licenseNumber: 'LIC-123456',
+            domiciledState: 'CA',
+            isActive: true,
+            tier: 'REGIONAL',
+        },
+    });
+
+    console.log('✅ Created carrier:', carrier.name);
+
     // Create demo users
     const adminUser = await prisma.user.upsert({
         where: { email: 'tyler@claimagent.io' },
@@ -18,7 +35,8 @@ async function main() {
             lastName: 'User',
             role: 'ADMIN',
             passwordHash: '$2b$10$demohashedpassword', // Demo password
-            active: true,
+            isActive: true,
+            carrierId: carrier.id,
         },
     });
 
@@ -31,7 +49,8 @@ async function main() {
             lastName: 'Supervisor',
             role: 'SUPERVISOR',
             passwordHash: '$2b$10$demohashedpassword',
-            active: true,
+            isActive: true,
+            carrierId: carrier.id,
         },
     });
 
@@ -44,68 +63,118 @@ async function main() {
             lastName: 'Adjuster',
             role: 'ADJUSTER',
             passwordHash: '$2b$10$demohashedpassword',
-            active: true,
+            isActive: true,
+            carrierId: carrier.id,
         },
     });
 
-    console.log('✅ Created users:', { adminUser: adminUser.email, supervisorUser: supervisorUser.email, adjusterUser: adjusterUser.email });
+    console.log('✅ Created users:', {
+        adminUser: adminUser.email,
+        supervisorUser: supervisorUser.email,
+        adjusterUser: adjusterUser.email
+    });
 
-    // Create sample policies first
-    const policy1 = await prisma.policy.create({
-        data: {
+    // Create sample policy
+    const policy = await prisma.policy.upsert({
+        where: { policyNumber: 'POL-123456' },
+        update: {},
+        create: {
             policyNumber: 'POL-123456',
-            effectiveDate: new Date('2024-01-01'),
-            expirationDate: new Date('2025-01-01'),
-            state: 'CA',
-            policyType: 'AUTO',
+            carrierId: carrier.id,
             holderFirstName: 'John',
             holderLastName: 'Doe',
             holderEmail: 'john.doe@email.com',
             holderPhone: '555-123-4567',
-            holderAddress: '123 Main St',
-            holderCity: 'Los Angeles',
-            holderState: 'CA',
-            holderZip: '90210',
-            liabilityLimit: 100000,
-            collisionLimit: 50000,
-            comprehensiveLimit: 25000,
-            collisionDeductible: 500,
-            comprehensiveDeductible: 250,
-        }
+            holderAddress: {
+                street: '123 Main St',
+                city: 'Los Angeles',
+                state: 'CA',
+                zip: '90210',
+            },
+            effectiveDate: new Date('2024-01-01'),
+            expirationDate: new Date('2025-01-01'),
+            status: 'ACTIVE',
+            annualPremium: 1200,
+        },
     });
 
-    // Create sample claims
-    const sampleClaims = [
-        {
-            claimNumber: 'CLM-2024-000001',
-            policyId: policy1.id,
-            status: 'APPROVED' as const,
-            claimType: 'COLLISION' as const,
-            incidentDate: new Date('2024-01-15'),
-            incidentState: 'CA',
-            incidentLocation: 'Los Angeles, CA',
-            incidentCity: 'Los Angeles',
-            incidentZip: '90210',
-            description: 'Vehicle was rear-ended at a stop light. Other driver admitted fault.',
-            estimatedAmount: 450000, // cents
-            approvedAmount: 420000,
-            deductibleAmount: 50000,
-            fraudScore: 0.12,
-        }
-    ];
+    console.log('✅ Created policy:', policy.policyNumber);
 
-    for (const claimData of sampleClaims) {
-        const claim = await prisma.claim.upsert({
-            where: { claimNumber: claimData.claimNumber },
-            update: {},
-            create: {
-                ...claimData,
-                createdById: adjusterUser.id,
-                assignedToId: adjusterUser.id,
+    // Create a vehicle for the policy
+    const vehicle = await prisma.vehicle.upsert({
+        where: { vin: '1HGBH41JXMN109186' },
+        update: {},
+        create: {
+            policyId: policy.id,
+            vin: '1HGBH41JXMN109186',
+            year: 2021,
+            make: 'Honda',
+            model: 'Accord',
+            trim: 'EX-L',
+            color: 'Silver',
+            mileage: 35000,
+        },
+    });
+
+    console.log('✅ Created vehicle:', `${vehicle.year} ${vehicle.make} ${vehicle.model}`);
+
+    // Create sample claim
+    const claim = await prisma.claim.upsert({
+        where: { claimNumber: 'CLM-2024-000001' },
+        update: {},
+        create: {
+            claimNumber: 'CLM-2024-000001',
+            carrierId: carrier.id,
+            policyId: policy.id,
+            vehicleId: vehicle.id,
+            adjusterId: adjusterUser.id,
+            lossDate: new Date('2024-01-15'),
+            reportedDate: new Date('2024-01-15'),
+            lossLocation: {
+                address: '456 Oak Ave',
+                city: 'Los Angeles',
+                state: 'CA',
+                zip: '90210',
+                description: 'Intersection of Oak Ave and Main St',
             },
-        });
-        console.log(`✅ Created claim: ${claim.claimNumber}`);
-    }
+            lossDescription: 'Vehicle was rear-ended at a stop light. Other driver admitted fault.',
+            claimType: 'AUTO_COLLISION',
+            lossType: 'COLLISION',
+            severity: 'MEDIUM',
+            complexity: 'SIMPLE',
+            status: 'APPROVED',
+            estimatedLoss: 4500,
+            reserveAmount: 5000,
+            paidAmount: 4200,
+            deductible: 500,
+            fraudScore: 12,
+            requiresHumanReview: false,
+            autoApprovalEligible: true,
+        },
+    });
+
+    console.log('✅ Created claim:', claim.claimNumber);
+
+    // Create state regulation for California
+    await prisma.stateRegulation.upsert({
+        where: { state: 'CA' },
+        update: {},
+        create: {
+            state: 'CA',
+            totalLossThreshold: 0.75,
+            totalLossFormula: 'ACV',
+            allowsDv: true,
+            dvLimitations: 'Allowed for third-party claims',
+            acknowledgmentDays: 15,
+            investigationDays: 40,
+            paymentDays: 30,
+            requiresRor: true,
+            doiWebsite: 'https://www.insurance.ca.gov',
+            doiPhone: '800-927-4357',
+        },
+    });
+
+    console.log('✅ Created CA state regulation');
 
     console.log('🎉 Seeding complete!');
 }

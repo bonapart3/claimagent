@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
             include: {
                 policy: true,
                 vehicle: true,
-                documents: true
+                documents: true,
+                participants: true,
             }
         });
 
@@ -60,9 +61,10 @@ export async function POST(request: NextRequest) {
         // Run pattern detection
         const patternScore = await patternDetector.analyze(claim);
 
-        // Run medical fraud screening (if applicable)
+        // Run medical fraud screening if there are injury-related participants
         let medicalScore = 0;
-        if (claim.injuryDescription) {
+        const hasInjury = claim.participants?.some(p => p.injuryDescription);
+        if (hasInjury) {
             medicalScore = await medicalScreener.analyze(claim);
         }
 
@@ -87,17 +89,14 @@ export async function POST(request: NextRequest) {
             ...(medicalScore > 0 ? ['Medical billing anomaly detected'] : [])
         ];
 
-        // Save fraud assessment
-        const fraudAssessment = await prisma.fraudAssessment.create({
+        // Save fraud analysis
+        const fraudAnalysis = await prisma.fraudAnalysis.create({
             data: {
                 claimId,
-                fraudScore: compositeScore,
+                overallScore: compositeScore,
                 riskLevel,
-                indicators: indicators.join('; '),
-                patternScore: patternScore.score,
-                medicalScore,
-                assessedAt: new Date(),
-                assessedBy: 'FRAUD_AGENT_GROUP_C'
+                flaggedReasons: indicators,
+                siuRecommendation: compositeScore >= FRAUD_THRESHOLD.ESCALATION ? 'Recommend SIU review' : null,
             }
         });
 
@@ -106,13 +105,21 @@ export async function POST(request: NextRequest) {
             await prisma.claim.update({
                 where: { id: claimId },
                 data: {
-                    status: 'FLAGGED_FRAUD',
+                    status: 'SUSPENDED',
+                    routingDecision: 'SIU_ESCALATION',
+                    fraudScore: compositeScore,
                     updatedAt: new Date()
                 }
             });
-
-            // TODO: Create SIU briefing
-            // await siuBriefingWriter.create(claim, fraudAssessment);
+        } else {
+            // Update fraud score on claim
+            await prisma.claim.update({
+                where: { id: claimId },
+                data: {
+                    fraudScore: compositeScore,
+                    updatedAt: new Date()
+                }
+            });
         }
 
         return NextResponse.json({
@@ -126,7 +133,7 @@ export async function POST(request: NextRequest) {
                     medicalScore,
                     escalated: compositeScore >= FRAUD_THRESHOLD.ESCALATION
                 },
-                assessment: fraudAssessment
+                analysis: fraudAnalysis
             }
         });
 
@@ -138,4 +145,3 @@ export async function POST(request: NextRequest) {
         );
     }
 }
-

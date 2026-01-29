@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/utils/database';
 import { validateSession } from '@/lib/utils/validation';
 import { auditLog } from '@/lib/utils/auditLogger';
+import { Claim, Policy, Vehicle } from '@prisma/client';
+
+type ClaimWithRelations = Claim & {
+    policy: Policy;
+    vehicle: Vehicle | null;
+};
 
 /**
  * POST /api/claims/[id]/automate
  * Run automated adjuster processing on an existing claim
- * Focus: Automotive claims only, no trucking
+ * Focus: Automotive claims only
  */
 export async function POST(
     request: NextRequest,
@@ -34,18 +40,6 @@ export async function POST(
             return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
         }
 
-        // Authorization check
-        if (claim.assignedToId !== session.userId && session.role !== 'ADMIN' && session.role !== 'SUPERVISOR') {
-            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-        }
-
-        // Check if automotive claim (not trucking)
-        if (claim.policy?.policyType === 'COMMERCIAL_AUTO' && claim.vehicle?.usage === 'DELIVERY') {
-            return NextResponse.json({
-                error: 'Automation not available for trucking/commercial delivery claims'
-            }, { status: 400 });
-        }
-
         // Run automated processing
         const automationResult = await runAutomatedAdjusterProcessing(claim);
 
@@ -54,11 +48,12 @@ export async function POST(
             userId: session.userId,
             action: 'CLAIM_AUTOMATION_RUN',
             claimId: claimId,
+            entityType: 'Claim',
+            entityId: claimId,
             details: {
                 automationType: 'adjuster_assistance',
                 recommendations: automationResult.recommendations?.length || 0
             },
-            ipAddress: request.headers.get('x-forwarded-for') || undefined,
         });
 
         return NextResponse.json({
@@ -76,13 +71,20 @@ export async function POST(
     }
 }
 
+interface Recommendation {
+    type: string;
+    priority: 'HIGH' | 'MEDIUM' | 'LOW';
+    message: string;
+    action: string;
+}
+
 /**
  * Thin automation layer for adjuster assistance
  * Extracts key insights without replacing human judgment
  */
-async function runAutomatedAdjusterProcessing(claim: any) {
-    const recommendations = [];
-    const insights = [];
+async function runAutomatedAdjusterProcessing(claim: ClaimWithRelations) {
+    const recommendations: Recommendation[] = [];
+    const insights: string[] = [];
 
     // 1. Basic validation checks
     if (!claim.vehicle) {
@@ -94,17 +96,17 @@ async function runAutomatedAdjusterProcessing(claim: any) {
         });
     }
 
-    // 2. Policy coverage analysis (simplified)
+    // 2. Policy coverage analysis
     if (claim.policy) {
-        const coverageAnalysis = analyzeCoverage(claim);
+        const coverageAnalysis = await analyzeCoverage(claim);
         if (coverageAnalysis.warnings.length > 0) {
             recommendations.push(...coverageAnalysis.warnings);
         }
         insights.push(...coverageAnalysis.insights);
     }
 
-    // 3. Estimate validation (simplified)
-    if (claim.estimatedAmount) {
+    // 3. Estimate validation
+    if (claim.estimatedLoss) {
         const estimateCheck = validateEstimate(claim);
         recommendations.push(...estimateCheck.recommendations);
         insights.push(...estimateCheck.insights);
@@ -132,36 +134,45 @@ async function runAutomatedAdjusterProcessing(claim: any) {
     };
 }
 
-function analyzeCoverage(claim: any) {
-    const warnings = [];
-    const insights = [];
+async function analyzeCoverage(claim: ClaimWithRelations) {
+    const warnings: Recommendation[] = [];
+    const insights: string[] = [];
 
-    // Check coverage limits
-    if (claim.policy?.liabilityLimit && claim.estimatedAmount > claim.policy.liabilityLimit) {
-        warnings.push({
-            type: 'COVERAGE_LIMIT',
-            priority: 'HIGH',
-            message: `Claim estimate (${claim.estimatedAmount}) exceeds liability limit (${claim.policy.liabilityLimit})`,
-            action: 'REVIEW_COVERAGE'
-        });
-    }
+    // Fetch coverages for the policy
+    const coverages = await prisma.coverage.findMany({
+        where: { policyId: claim.policyId },
+    });
 
-    // Check deductibles
-    if (claim.policy?.collisionDeductible && claim.claimType === 'COLLISION') {
-        insights.push(`Collision deductible: $${claim.policy.collisionDeductible}`);
+    // Find collision coverage
+    const collisionCoverage = coverages.find(c => c.type === 'COLLISION');
+
+    if (collisionCoverage && claim.estimatedLoss) {
+        const limit = collisionCoverage.limitPerAccident || collisionCoverage.limitProperty;
+        if (limit && Number(claim.estimatedLoss) > Number(limit)) {
+            warnings.push({
+                type: 'COVERAGE_LIMIT',
+                priority: 'HIGH',
+                message: `Claim estimate ($${claim.estimatedLoss}) may exceed coverage limit ($${limit})`,
+                action: 'REVIEW_COVERAGE'
+            });
+        }
+
+        if (collisionCoverage.deductible) {
+            insights.push(`Collision deductible: $${collisionCoverage.deductible}`);
+        }
     }
 
     return { warnings, insights };
 }
 
-function validateEstimate(claim: any) {
-    const recommendations = [];
-    const insights = [];
+function validateEstimate(claim: ClaimWithRelations) {
+    const recommendations: Recommendation[] = [];
+    const insights: string[] = [];
 
     // Basic reasonableness checks
-    if (claim.claimType === 'COLLISION' && claim.vehicle?.year) {
+    if (claim.claimType === 'AUTO_COLLISION' && claim.vehicle?.year) {
         const vehicleAge = new Date().getFullYear() - claim.vehicle.year;
-        if (vehicleAge > 10 && claim.estimatedAmount > 5000) {
+        if (vehicleAge > 10 && claim.estimatedLoss && Number(claim.estimatedLoss) > 5000) {
             recommendations.push({
                 type: 'ESTIMATE_REVIEW',
                 priority: 'MEDIUM',
@@ -176,30 +187,36 @@ function validateEstimate(claim: any) {
     return { recommendations, insights };
 }
 
-function getReasonablenessScore(claim: any): number {
+function getReasonablenessScore(claim: ClaimWithRelations): number {
     let score = 5; // baseline
 
     // Adjust based on factors
     if (claim.vehicle?.year && claim.vehicle.year > 2015) score += 1;
-    if (claim.policy?.deductibles) score += 1;
-    if (claim.incidentDate) {
-        const daysSince = (Date.now() - new Date(claim.incidentDate).getTime()) / (1000 * 60 * 60 * 24);
+    if (claim.deductible) score += 1;
+    if (claim.lossDate) {
+        const daysSince = (Date.now() - new Date(claim.lossDate).getTime()) / (1000 * 60 * 60 * 24);
         if (daysSince < 30) score += 1; // recent claims more reliable
     }
 
     return Math.min(10, Math.max(1, score));
 }
 
-function basicFraudCheck(claim: any) {
-    const flags = [];
+function basicFraudCheck(claim: ClaimWithRelations) {
+    const flags: string[] = [];
 
     // Simple checks
-    if (claim.estimatedAmount > 50000) {
+    if (claim.estimatedLoss && Number(claim.estimatedLoss) > 50000) {
         flags.push('high_dollar_amount');
     }
 
-    if (!claim.policeReportNum && claim.claimType === 'COLLISION') {
+    // Check metadata for police report
+    const metadata = claim.metadata as Record<string, unknown> | null;
+    if (!metadata?.policeReportNumber && claim.claimType === 'AUTO_COLLISION') {
         flags.push('missing_police_report');
+    }
+
+    if (claim.fraudScore >= 50) {
+        flags.push('elevated_fraud_score');
     }
 
     return { flags };

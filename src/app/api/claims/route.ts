@@ -3,7 +3,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/utils/database';
-import { auditLog } from '@/lib/utils/auditLogger';
 import { ClaimListQuerySchema } from '@/lib/schemas/api';
 import {
     validateQueryParams,
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
         // Build where clause
         const where: Record<string, unknown> = {};
 
-        if (status && status !== 'all') {
+        if (status && (status as string) !== 'all') {
             where.status = status;
         }
 
@@ -69,7 +68,6 @@ export async function GET(request: NextRequest) {
                     _count: {
                         select: {
                             documents: true,
-                            damages: true,
                         },
                     },
                 },
@@ -83,12 +81,12 @@ export async function GET(request: NextRequest) {
             claimNumber: claim.claimNumber,
             status: claim.status,
             claimType: claim.claimType,
-            lossDate: claim.incidentDate.toISOString(),
-            lossLocation: claim.incidentLocation,
+            lossDate: claim.lossDate.toISOString(),
+            lossLocation: claim.lossLocation,
             createdAt: claim.createdAt.toISOString(),
             updatedAt: claim.updatedAt.toISOString(),
-            estimatedAmount: claim.estimatedAmount,
-            approvedAmount: claim.approvedAmount,
+            estimatedLoss: claim.estimatedLoss,
+            paidAmount: claim.paidAmount,
             policyNumber: claim.policy.policyNumber,
             policyHolder: `${claim.policy.holderFirstName} ${claim.policy.holderLastName}`,
             vehicle: claim.vehicle ? {
@@ -98,7 +96,6 @@ export async function GET(request: NextRequest) {
                 model: claim.vehicle.model,
             } : null,
             documentCount: claim._count.documents,
-            damageCount: claim._count.damages,
         }));
 
         return NextResponse.json({
@@ -122,8 +119,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-
         // This endpoint could be used for bulk operations
         // For now, redirect to submit endpoint
         return NextResponse.json(
@@ -141,4 +136,3 @@ export async function POST(request: NextRequest) {
         );
     }
 }
-

@@ -327,7 +327,7 @@ export default async function StatePage({
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <Logo size="sm" variant="light" />
+                  <Logo size="sm" variant="icon" />
                   <span className="font-semibold text-white">ClaimAgent</span>
                 </div>
                 <p className="text-sm">
