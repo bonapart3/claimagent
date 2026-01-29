@@ -90,7 +90,7 @@ export default function NewClaimPage() {
             const result = await response.json();
 
             if (result.success) {
-                router.push(`/claims/${result.data.claimNumber}/confirmation`);
+                router.push(`/claims/dashboard?submitted=${result.data.claimNumber}`);
             } else {
                 alert(result.error || 'Failed to submit claim');
             }

@@ -2,6 +2,7 @@
 // Request validation and session management
 
 import { NextRequest } from 'next/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { prisma } from './database';
 
 export interface Session {
@@ -14,21 +15,34 @@ export interface Session {
 }
 
 /**
- * Validate session from request headers/cookies
+ * Validate session from Clerk auth or legacy session token.
+ * Clerk is the primary auth method; legacy token lookup is fallback.
  */
 export async function validateSession(request: NextRequest): Promise<Session | null> {
     try {
+        // Primary: Clerk authentication
+        const { userId: clerkUserId } = await auth();
+        if (clerkUserId) {
+            const user = await currentUser();
+            return {
+                userId: clerkUserId,
+                email: user?.emailAddresses?.[0]?.emailAddress || '',
+                role: (user?.publicMetadata?.role as string) || 'ADJUSTER',
+                canRead: true,
+                canWrite: true,
+                canAdmin: (user?.publicMetadata?.role as string) === 'ADMIN',
+            };
+        }
+
+        // Fallback: legacy session token
         const authHeader = request.headers.get('authorization');
         const sessionCookie = request.cookies.get('session')?.value;
-
         const token = authHeader?.replace('Bearer ', '') || sessionCookie;
 
         if (!token) {
             return null;
         }
 
-        // Look up session in database
-        // Note: userSession model may not exist in all Prisma schemas
         const prismaAny = prisma as any;
         if (!prismaAny.userSession) {
             return null;
