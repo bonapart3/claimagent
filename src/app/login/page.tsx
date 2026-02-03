@@ -6,6 +6,7 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import { Button } from '@/components/ui/Button';
 import { FormInput } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
@@ -51,7 +52,7 @@ function LoginForm() {
     <div className="bg-white py-8 px-6 shadow-xl rounded-2xl">
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <Alert variant="error" onClose={() => setError('')}>
+          <Alert variant="error" onClose={() => setError('')}> 
             {error}
           </Alert>
         )}
@@ -77,7 +78,7 @@ function LoginForm() {
         />
 
         <div className="flex items-center justify-between">
-          <label className="flex items-center">
+          <label className="flex items-center"> 
             <input
               type="checkbox"
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -121,31 +122,44 @@ function LoginFormFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Logo and Title */}
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-2xl bg-blue-600 text-white text-3xl shadow-lg">
-            🚗
+    <> 
+      {/* Load Apollo tracker after the page is interactive. This is client-only and adds no visible UI. */}
+      <Script
+        id="apollo-loader"
+        strategy="afterInteractive"
+        src={`https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache=${Math.random().toString(36).substring(7)}`}
+        onLoad={() => {
+          // safely call the onLoad handler if available
+          (window as any).trackingFunctions?.onLoad({ appId: '695c88c5199a2b000df3d04b' });
+        }}
+      />
+
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          {/* Logo and Title */}
+          <div className="text-center">
+            <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-2xl bg-blue-600 text-white text-3xl shadow-lg">
+              🚗
+            </div>
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              ClaimAgent™
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Autonomous Insurance Claims Platform
+            </p>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            ClaimAgent™
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Autonomous Insurance Claims Platform
+
+          {/* Login Form with Suspense */}
+          <Suspense fallback={<LoginFormFallback />}> 
+            <LoginForm />
+          </Suspense>
+
+          {/* Footer */}
+          <p className="text-center text-sm text-gray-500">
+            © {new Date().getFullYear()} ClaimAgent™. All rights reserved.
           </p>
         </div>
-
-        {/* Login Form with Suspense */}
-        <Suspense fallback={<LoginFormFallback />}>
-          <LoginForm />
-        </Suspense>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} ClaimAgent™. All rights reserved.
-        </p>
       </div>
-    </div>
+    </>
   );
 }
