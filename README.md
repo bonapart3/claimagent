@@ -226,6 +226,7 @@ npm run test:coverage
 - **Performance Metrics**: Cycle time, cost per claim, error rates
 - **Regulatory Compliance**: State-specific adherence tracking
 - **Audit Trail**: Complete activity log with search and export
+- **Vercel Web Analytics**: Privacy-first visitor analytics and performance monitoring (see [ANALYTICS.md](./ANALYTICS.md))
 
 ## Compliance
 
@@ -307,6 +308,7 @@ Copyright 2026 ClaimAgent / Veridicus Insurance Technology
 - [Fraud Detection](./docs/fraud.md)
 - [Deployment Guide](./docs/deployment.md)
 - [Security Whitepaper](./docs/security.md)
+- [Vercel Web Analytics Setup](./ANALYTICS.md)
 
 ## Achievements
 
