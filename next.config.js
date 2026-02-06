@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    swcMinify: true,
 
     // Compiler Options
     compiler: {
@@ -10,12 +9,31 @@ const nextConfig = {
 
     // Image Optimization
     images: {
-        domains: [
-            'claimagent.io',
-            'veridicus.io',
-            'cdn.claimagent.io',
-            'storage.googleapis.com',
-            's3.amazonaws.com',
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'claimagent.io',
+            },
+            {
+                protocol: 'https',
+                hostname: 'veridicus.io',
+            },
+            {
+                protocol: 'https',
+                hostname: 'cdn.claimagent.io',
+            },
+            {
+                protocol: 'https',
+                hostname: 'storage.googleapis.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 's3.amazonaws.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'img.clerk.com',
+            },
         ],
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -119,9 +137,11 @@ const nextConfig = {
         NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
     },
 
+    // External Packages (moved from experimental)
+    serverExternalPackages: ['prisma', '@prisma/client'],
+
     // Experimental Features
     experimental: {
-        serverComponentsExternalPackages: ['prisma', '@prisma/client'],
         optimizeCss: true,
         optimizePackageImports: [
             'lucide-react',
@@ -131,6 +151,9 @@ const nextConfig = {
             'recharts',
         ],
     },
+
+    // Turbopack Configuration (required for Next.js 16)
+    turbopack: {},
 
     // Webpack Configuration
     webpack: (config, { isServer, webpack }) => {
@@ -164,12 +187,7 @@ const nextConfig = {
 
     // TypeScript Configuration
     typescript: {
-        ignoreBuildErrors: true, // TODO: Fix type errors and set back to false
-    },
-
-    // ESLint Configuration
-    eslint: {
-        ignoreDuringBuilds: true, // TODO: Fix lint errors and set back to false
+        ignoreBuildErrors: true, // Temporarily ignore build errors for deployment
     },
 
     // Trailing Slash
